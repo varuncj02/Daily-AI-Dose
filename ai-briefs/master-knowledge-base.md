@@ -101,9 +101,9 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ---
 
-## Capability-Gating (NEW — April 8, 2026)
+## Capability-Gating & Open-Source Strategy
 
-### Restricted-Access Frontier Models
+### Restricted-Access Frontier Models (April 8, 2026 — Extended)
 - **Anthropic Mythos Preview (April 7, 2026):** First frontier model withheld from general release due to specific dual-use capability (autonomous vulnerability exploitation)
 - **Pattern:** Capability-gated deployment — not general public API, distributed via institutional partnership only (40 vetted organizations via Project Glasswing)
 - **Mechanism for future access:** Planned Cyber Verification Program for individual researchers
@@ -114,9 +114,19 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
   - 2026+: Tiered access — general API + restricted-access tiers for high-capability models
 - **Link to safety:** Confidence calibration (can't self-assess hacking risk) + autonomous execution = dual-use by construction at frontier scale
 
+### Meta's Open-Source Retreat (NEW — April 9, 2026)
+- **Muse Spark (April 8, 2026):** First model from Meta Superintelligence Labs (MSL), led by Alexandr Wang — CLOSED SOURCE
+- **This contradicts the prior assumption** that Meta would continue publishing all competitive models as Llama open weights. Muse Spark breaks that pattern.
+- **Strategic signal:** When MSL builds something considered competitive, the default is now proprietary. Llama series continues for open-weight releases, but MSL's first product is a closed API.
+- **The bifurcation:** Open-weight ecosystem (Llama 4, GLM-5.1, Gemma 4) is now structurally behind both Anthropic-restricted (Mythos) AND Meta-proprietary (Muse Spark) frontier capability.
+- **Architecture:** MSL rebuilt Meta's AI stack from scratch over 9 months — new infrastructure, new architecture, new data pipelines. Muse Spark is not an iteration on Llama 4.
+- **Efficiency claim:** Muse Spark achieves Llama 4 Maverick-class performance with over an order of magnitude less compute. Mechanism: architectural redesign + improved data curation (not yet published).
+- **Current capabilities:** Multimodal (vision/text/audio input, text output), multi-agent "Contemplating" mode, shopping mode. Weaker than frontier on coding. Competitive on multimodal understanding + health.
+- **Benchmark position:** Ranks 4th on Artificial Analysis Intelligence Index v4.0 (score 52), behind Claude Sonnet 4.6, Gemini 3.1 Pro, and GPT-5.4.
+
 ---
 
-## Tool Use & Orchestration (MCP, A2A, Function Calling)
+## Tool Use & Orchestration (MCP, A2A, Function Calling, Terminal Agents)
 
 ### MCP (Model Context Protocol) — April 2026 State
 - **Scale:** 5,800+ MCP servers, 97M monthly SDK downloads
@@ -134,6 +144,13 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 ### Google A2A Protocol
 - Agent-to-agent communication standard
 - Less ecosystem traction than MCP as of April 2026; watch for convergence
+
+### PTY-Based Terminal Interaction (NEW — April 9, 2026)
+- **tui-use (April 8–9, 2026):** Spawns any program in a PTY, runs headless xterm emulator, presents clean plain-text screen state + `highlights` field for TUI-selected items; sends keystrokes back through PTY
+- **Gap it fills:** AI agents currently stall when programs ask for interactive input (npm create, psql, vim, redis-cli, Python REPL). bash subprocess calls can't handle TTY-aware programs
+- **Why `highlights` matters:** Standard TUI programs show selected items via inverse-video ANSI codes. Parsing this in plain text is brittle; the `highlights` field normalizes it into a structured field agents can consume
+- **Scope:** macOS/Linux only (requires Unix PTY). Works for any interactive terminal program without code changes to the target program
+- **Relation to MCP:** Could be wrapped as an MCP server for tool-calling agents — currently a standalone CLI tool
 
 ---
 
@@ -307,7 +324,7 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Open-Source Landscape
 
-### Model Families (April 8, 2026 Update)
+### Model Families (April 9, 2026 Update)
 | Family | Best Open Size | Context | License | Multimodal | SWE-bench Pro |
 |--------|---------------|---------|---------|-----------|--------------|
 | Llama 4 | Maverick (17B/128E) | 10M | Commercial | Native | ~54% est. |
@@ -317,6 +334,10 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 | DeepSeek | V3 | 128K | MIT | No | — |
 
 Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8% — 19 points above best public model.
+
+### Closed-Source Non-Llama Models (NEW — April 9, 2026)
+- **Meta Muse Spark:** Closed-source proprietary model from Meta Superintelligence Labs. Not Llama. Private API preview only. Multi-agent "Contemplating" mode. Ranks 4th on AAII v4.0.
+- **Watch:** DeepSeek V4 (expected late April 2026) — 1T MoE parameters, 1M context, Engram conditional memory, $0.30/MTok. V4-Lite live on API nodes since early April. Third-party verification pending.
 
 ### Infrastructure
 - **llama.cpp b8664:** CPU-optimized inference, latest CUDA support
@@ -355,20 +376,23 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ## Business Opportunities & Infra Gaps
 
-### High-Priority Gaps (April 8, 2026 Update)
+### High-Priority Gaps (April 9, 2026 Update)
 1. **Agent Memory-as-a-Service:** Managed LLM-curated hierarchical memory for vertical agents
 2. **Agent Reliability Monitoring:** 90% failure rate, no mature monitoring tool; confidence calibration unsolved
-3. **Long-horizon agent observability (NEW April 8):** No tooling for monitoring agents running 8-hour / 600+ iteration sessions — reasoning drift, strategy revision tracking, context budget management
+3. **Long-horizon agent observability (April 8):** No tooling for monitoring agents running 8-hour / 600+ iteration sessions — reasoning drift, strategy revision tracking, context budget management
 4. **Edge Multimodal Agent Products:** Hardware ready (Gemma 4 E2B), software stack missing
 5. **MCP Server Registry:** 5,800+ servers, no curated quality-graded discovery layer
 6. **Multi-Agent Coordination Middleware:** Proven pattern (Cursor 3), missing for non-coding domains
 7. **Serving Cost Optimization Tooling:** TurboQuant + Saguaro + T² = 50-70% cost reduction; expertise barrier is commercial opportunity
-8. **Agentic security scanning for SMBs (NEW April 8):** Mythos pattern documented; GLM-5.1 capable of agentic code analysis; no accessible service below Glasswing enterprise partnership level
-9. **Dual-use AI capability advisory (NEW April 8):** Regulatory/compliance gap between what frontier models can do (autonomous exploit generation) and what governance frameworks cover
+8. **Agentic security scanning for SMBs (April 8):** Mythos pattern documented; GLM-5.1 capable of agentic code analysis; no accessible service below Glasswing enterprise partnership level
+9. **Dual-use AI capability advisory (April 8):** Regulatory/compliance gap between what frontier models can do (autonomous exploit generation) and what governance frameworks cover
+10. **Reasoning depth analyzer for agent pipelines (NEW April 9):** No tool that profiles sequential reasoning depth per LLM call, classifies tasks against the Depth Ceiling, and recommends where to inject explicit CoT. Theoretical basis now available (arXiv:2604.06427).
+11. **PTY-native tool execution in agent frameworks (NEW April 9):** tui-use fills the interactive terminal gap standalone, but no first-party integration exists in LangChain, LangGraph, CrewAI, or as an MCP server. Builders hitting the interactive CLI wall is a large underserved market.
+12. **AI billing intensity auditing for healthcare (NEW April 9):** AI scribes confirmed to increase coding intensity → billing inflation. Neither regulatory framework nor commercial tooling exists for automated detection/normalization. Insurers and providers both need it.
 
 ---
 
-## Economics & Scale (April 8, 2026 Update)
+## Economics & Scale (April 9, 2026 Update)
 
 ### Frontier Lab Revenue Race
 - **Anthropic:** $30B ARR (April 2026), up from $9B end of 2025 — 3.3× in one quarter
@@ -383,6 +407,20 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - 3.5GW additional coming online 2027 — 4.5× expansion
 - Context: Single hyperscale data center ≈ 50-100MW; 3.5GW ≈ 35-70 hyperscale data centers
 - Revenue-to-compute deal correlation: as demand tripled, compute secured for next 2-3 training generations
+
+### AI Labor Market Impacts (NEW — April 9, 2026)
+- **Q1 2026 actuals:** U.S. tech sector cut 52,050 jobs — 40% jump from Q1 2025
+- **March 2026:** AI was the stated reason for 25% of tech layoffs (vs. 10% in February 2026) — fastest month-over-month acceleration observed
+- **NY Fed workplace AI study (April 8 advisory):** Central bank-level dataset on who uses AI at work, productivity claims, unemployment expectations, and training access value — first major study of this kind
+- **Goldman Sachs:** Calls AI "the big story in 2026 in labor"; entry-level knowledge workers and content creation most at risk near-term
+- **Concentration:** Impact concentrated in knowledge/content work — not yet general workforce displacement
+
+### AI Scribes & Healthcare Cost Inflation (NEW — April 9, 2026)
+- **STAT News / Peterson Health Technology Institute finding (April 8, 2026):** Both insurers AND providers agree AI scribes are increasing healthcare billing intensity
+- **Mechanism:** AI scribes produce more complete clinical notes → more billable conditions documented → higher coded claims → higher healthcare costs
+- **This is not fraud:** The codes are accurate; the AI is documenting things that were previously underdocumented. The result is structurally higher billing
+- **No consensus on solution:** Providers argue underbilling was the pre-AI baseline. Insurers argue costs are rising regardless. No regulatory framework exists for "AI-caused billing inflation through completeness"
+- **Pattern:** First clear production example of AI causing economic disruption through unintended second-order effects (not automation of existing tasks, but improvement of documentation quality changing cost structures)
 
 ---
 
@@ -399,6 +437,12 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 8]: GLM-5.1 — async RL (Slime) + DSA → first open model sustaining 8-hour / 655-iteration agent sessions; SWE-bench Pro #1 among publicly accessible models
 - [April 8]: Anthropic Mythos Preview — capability-gating as deployment pattern; autonomous zero-day discovery at frontier scale; dual-use constraint forces restricted access
 - [April 8]: Frontier capability bifurcation — 19-point SWE-bench Pro gap between restricted (77.8%) and open (58.4%) models; gap is structural, not just temporary
+- [April 9]: Latent planning depth ceiling — empirically measured: ~5 steps learnable in training, ~7-8 at test time for frontier models; scale improves breadth not depth; CoT/tools mandatory for >8 sequential steps
+- [April 9]: In-Place TTT — MLP projection matrix as fast-weight session memory; no new modules; adaptive inference without external memory; adds 5th tier to memory architecture
+- [April 9]: Meta's open-source retreat — Muse Spark (MSL) is closed-source; contradicts prior assumption that Meta would continue publishing all competitive models as Llama weights
+- [April 9]: AI-induced healthcare billing inflation — AI scribes increase coding completeness → higher billed amounts; first confirmed second-order economic effect of AI deployment at scale
+- [April 9]: AI as primary tech layoff driver — 25% of March 2026 tech layoffs attributed to AI (up from 10% in Feb); Q1 2026 tech sector cuts up 40% YoY
+- [April 9]: tui-use — PTY + headless xterm unlocks interactive terminal programs for AI agents; closes the "interactive CLI stall" gap that bash subprocess calls can't handle
 
 ---
 
