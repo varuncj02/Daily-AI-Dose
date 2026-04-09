@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 8, 2026*
+*Last updated: April 9, 2026*
 
 ---
 
@@ -11,6 +11,15 @@
 - Hierarchical planning (decompose → plan subtasks → execute) is the emerging standard for agent planners
 - Cursor 3's parallel Agents Window (April 2026) demonstrates this: task decomposition into parallel sub-agents rather than sequential CoT
 - **Open problem:** Agents still fail at coherent replanning after unexpected tool failures mid-chain
+
+### Latent Planning Depth Ceiling (NEW — April 9, 2026)
+- **The Depth Ceiling (arXiv:2604.06427, April 7, 2026):** LLMs have a hard upper bound on how many sequential reasoning steps they can execute inside a single forward pass (no CoT output)
+- **Empirical numbers:** Tiny transformers → 3 latent steps; fine-tuned GPT-4o/Qwen3-32B → 5 steps; GPT-5.4 → 7 steps
+- **Training ceiling:** ~5 steps learned during gradient-based training; *but* models trained to depth 5 generalize to depth 8 at test time
+- **Why there's a ceiling:** Training signal is only on final output correctness — no supervision on intermediate latent steps → weak gradient signal for deep sequential latent computation
+- **What scaling buys:** More planning *breadth* (wider branching factor) rather than *depth* (more sequential reasoning steps). Scaling from 8-layer small transformer to GPT-4o adds only 2 latent planning steps
+- **Design implication:** Any task requiring >7–8 sequential reasoning operations CANNOT rely on implicit LLM reasoning inside one call — explicit CoT, scratchpad, or tool-chaining is architecturally mandatory, not optional
+- **This refines the earlier finding on long-horizon planning failure:** The prior KB entry noted LLMs fail at long-horizon planning; the Depth Ceiling paper now quantifies the mechanism — it's a structural architectural limit (~7–8 steps), not just a capability gap
 
 ### Test-Time Compute Scaling
 - T² scaling laws (arXiv:2604.01411, April 2026): joint optimization of train tokens + inference samples under fixed E2E compute budget
@@ -51,16 +60,27 @@
 - **Mem0** (48K GitHub stars, April 2026): vector-first with graph/KV fallback; dominant for general-purpose agent memory
 - **Zep:** Differentiates on temporal query accuracy via knowledge graphs; best for time-sensitive queries
 
-### Memory Architecture Pattern (Current Standard)
+### Adaptive Inference-Time Memory (NEW — April 9, 2026)
+- **In-Place Test-Time Training (arXiv:2604.06169, April 7, 2026):** ICLR 2026 Oral — repurposes the final projection matrix in MLP blocks as "fast weights" that update during inference
+- **Mechanism:** Apply-then-update cycle per token chunk: (1) apply current fast weights to produce output, (2) update fast weights using next-token prediction objective on that chunk's activations
+- **No new modules, no pretraining required** — drops into any existing LLM architecture
+- **Why MLP projection matrix:** Attention is already dynamic (per-context); MLP blocks are static and store factual patterns — making them adaptable creates a write-accessible session memory inside the model
+- **Key result:** Improves performance on tasks where novel in-context information needs to persist across a long session
+- **Relationship to existing memory approaches:** This extends the prior memory architecture pattern by adding a *fifth* tier — in-weights ephemeral memory — that is cheaper than external stores for short-horizon adaptation
+- **Connection to Depth Ceiling finding:** In-Place TTT addresses context retention, not reasoning depth — it helps the model "remember" what it saw earlier in a session, but does not increase the 7–8 step latent planning ceiling
+
+### Memory Architecture Pattern (Updated — April 9, 2026)
 ```
 Context Window (working memory)
+    ↕
+[NEW] In-Weights Ephemeral Memory (In-Place TTT fast weights) — session-scoped adaptation
     ↕
 External Storage (episodic/semantic/procedural)
     ├── Vector DB (for semantic similarity)
     ├── Graph DB (for relational/temporal)
     └── KV Store (for structured facts)
 ```
-Tiered memory is now standard; distinction is which tier handles which query type.
+Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-Place TTT), vector/graph/KV external. Distinction is which tier handles which query type and update frequency.
 
 ---
 
