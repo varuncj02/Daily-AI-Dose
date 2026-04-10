@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 9, 2026*
+*Last updated: April 10, 2026*
 
 ---
 
@@ -190,6 +190,32 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ---
 
+## Agent Frameworks & Infrastructure (NEW — April 7–8, 2026)
+
+### Microsoft Agent Framework 1.0 (April 7, 2026)
+- Unification of Semantic Kernel + AutoGen into single production SDK
+- **Stable APIs + long-term support commitment** — first major lab commitment to agent framework stability
+- **MCP + A2A integration:** Full support for Model Context Protocol tool discovery + Agent-to-Agent 1.0 protocol for cross-framework agent collaboration
+- **Multi-agent features:** Context consolidation (30–50% token reduction on deep chains), configurable tool error handling
+- **Design implication:** Framework consolidation reduces vendor lock-in for agents; interop becomes standard
+
+### Claude Managed Agents (April 8, 2026 — Public Beta)
+- Fully managed cloud infrastructure for long-running autonomous agents on Claude Platform
+- **Session persistence:** Multi-hour sessions survive client disconnection
+- **Multi-agent spawning:** Agents can spawn and coordinate other agents (research preview)
+- **Built-in tools:** Secure file/code/web execution with session-level isolation
+- **Observability:** Session tracing + debugging via Claude Console; inspect every tool call, decision, failure
+- **Pricing:** Standard Claude tokens + $0.08/session-hour runtime fee
+- **Early customers:** Notion, Rakuten, Asana
+- **Production signal:** Removes weeks of infrastructure work; shifts bottleneck from "can Claude be an agent" to "how do we run production agents at scale"
+
+### Pattern Consolidation
+- Agent frameworks (LangGraph, AutoGen, Agent Framework) converging on graph-based orchestration
+- MCP as lingua franca for tool definition (ecosystem moving toward this)
+- Cloud-managed agents + self-hosted frameworks coexisting; market bifurcating on deployment preference
+
+---
+
 ## Agent Evaluation & Reliability
 
 ### Current Benchmarks (April 8, 2026 Update)
@@ -246,6 +272,14 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **T² (arXiv:2604.01411):** Joint train/inference optimization; shifts optimal pretraining into overtraining regime for inference-heavy workloads
 - **Chinchilla status:** Still valid for training-compute-only budget; outdated for E2E compute budgets with significant inference
 - **Practical impact:** For agent workloads spending >40% compute on inference, overtrain smaller models
+
+### Agentic RL: Template Collapse & SNR-Based Filtering (NEW — April 7, 2026)
+- **RAGEN-2 finding:** Multi-turn RL agents experience "template collapse" — learning spurious input-agnostic patterns instead of genuine long-horizon reasoning strategies
+- **Mechanism:** Reward signal only on final outcomes → weak gradient for intermediate reasoning steps → model learns shortcuts (template patterns) that achieve high reward in training but fail to generalize
+- **Solution:** SNR-Aware trajectory filtering — measure variance across successful rollouts, filter low-SNR (high-variance, likely spurious) trajectories before training
+- **Results:** ~40% reduction in training iterations to convergence; preserved reasoning generalization
+- **Connection to Depth Ceiling (April 9):** Depth Ceiling = architectural limit on implicit reasoning within one call (~7–8 steps). RAGEN-2 = learning limit on RL-derived reasoning even with explicit steps. Two orthogonal bottlenecks.
+- **Implication for builder:** If RL agent training plateaus, check for template collapse via variance analysis before scaling
 
 ### Async RL for Long-Horizon Agent Training (NEW — April 8, 2026)
 - **GLM-5.1 Slime infrastructure:** Decouples generation, evaluation, and training as overlapping async processes on separate GPU groups
@@ -314,6 +348,19 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Gemma 4:** Native vision + audio; full multimodal at edge (E2B on Raspberry Pi)
 - **Trend:** Multimodal-first is now the default for new model families
 
+### Speech & Voice (NEW — April 2–4, 2026)
+- **MAI-Transcribe-1 (Microsoft):** SOTA speech-to-text, 25 languages, outperforms Whisper-large-v3 + GPT-Transcribe on FLEURS benchmark, $0.36/hour (commodity pricing)
+- **MAI-Voice-1 (Microsoft):** Text-to-speech with emotional range, 60 seconds generated in 1 second
+- **Mistral Voxtral Models:** Open-weight text-to-speech (Voxtral TTS) + real-time transcription (Voxtral Realtime) on HF Hub
+- **Market signal:** Speech/voice components are now commodity infrastructure — focus shifting to multimodal integration, not basic speech recognition
+
+### Video Generation (NEW — April 7–10, 2026)
+- **HappyHorse-1.0 (Alibaba ATH, April 7):** SOTA text-to-video and image-to-video, wins blind-test benchmarks; core innovation is temporal consistency mechanism preserving subject identity + motion over 2-minute sequences
+- **Alibaba Wan 2.7 (April 6):** "Thinking Mode" for planning-intensive generation, reference tracking, motion primitives
+- **Google Veo 3.1 Lite (April 7):** Cost-reduced version with text-to-video + image-to-video
+- **Coherence timeline:** 2024 → 10–30 seconds single-pass; 2025 → 30–60 seconds; 2026 → 2-minute single-pass coherent generation (now achieved)
+- **Market implication:** Video generation is commodity feature for any content platform by Q3 2026
+
 ### Context Window Race
 - Llama 4 Scout: 10M tokens (current open-weight leader)
 - Gemma 4: 256K tokens
@@ -350,6 +397,27 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ---
 
+## Embodied AI & Robotics (NEW — April 2–9, 2026)
+
+### Vision-Language-Action Models
+- **HY-Embodied (Tencent, April 9):** MoT-2B weights open-sourced; 32B frontier variant for robot control
+  - Takes: camera feeds + text commands + prior action context
+  - Outputs: discrete action tokens for robot execution
+  - **Cross-morphology generalization:** Trained on heterogeneous datasets (humanoids, mobile bases, arms); generalizes without per-morphology retraining
+  - **Production signal:** EAIDC 2026 (April 2, Shenzhen) demonstrated live robot control across multiple morphologies
+  - **Architecture:** "Brain" for Vision-Language-Action (VLA) pipelines
+- **Status shift:** VLA models are transitioning from research (simulation-dominated) to production (real-world capable)
+
+### Market & Events
+- **EAIDC 2026 (April 2, Shenzhen):** Embodied AI Developers Conference — first major conference dedicated to lab→production transition for embodied systems
+- **Market growth:** Physical AI market valued at ~$4.12B in 2024, projected to reach $61B by 2034 (31% CAGR)
+
+### Builder Implication
+- Open-source VLA models + frontier-class LLMs means embodied AI dev timelines compress dramatically in 2026
+- Previously: months to adapt a VLA to a new robot morphology; now: plug-and-play HY-Embodied
+
+---
+
 ## Local/Edge Deployment
 
 ### Capability (April 2026)
@@ -357,6 +425,7 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - **Apple Silicon M5+:** 31 tok/s on Gemma 4 31B with macOS 26.2+ Neural Accelerator
 - **Single H100:** Llama 4 Scout (17B active, 10M context)
 - **Edge multimodal agents:** Now technically feasible; software stack mostly unbuilt (opportunity)
+- **Edge embodied AI:** HY-Embodied opens frontier robot control on edge devices
 
 ---
 
@@ -374,9 +443,31 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ---
 
+## Knowledge Curation & AI-Curated Systems (NEW — April 3–10, 2026)
+
+### Shift: From Code Generator to Knowledge Curator
+- **Pattern (Andrej Karpathy, April 3):** Feed raw research materials (papers, notes, blog posts, PDFs) into a folder; point an LLM at it; LLM autonomously builds and maintains an interlinked wiki
+  - Writes articles explaining concepts
+  - Creates backlinks between related ideas
+  - Organizes into categories + hierarchies
+  - Maintains consistency across new updates
+- **Scale achieved:** Research wiki on single topic reached 100+ articles, 400K+ words, fully AI-maintained
+- **Also observed:** AI agents autonomously modifying code, training for 5 minutes, evaluating results, keeping/discarding changes, iterating — the same pattern applied to ML research itself
+
+### Design Implication
+- **Old paradigm:** Humans write code, AI generates code / completes code
+- **New paradigm:** Humans provide raw materials (research, data, problem context), AI curates + organizes + maintains knowledge structure
+- **Scope:** This pattern applies to research workflows, documentation management, codebase organization, and any domain requiring synthesis of multiple sources
+
+### Business Opportunity
+- **Knowledge curation platform:** SaaS product packaging this approach for research teams, legal teams, VCs, compliance teams
+- First-mover advantage in 2026; by 2027 likely becomes table-stakes feature
+
+---
+
 ## Business Opportunities & Infra Gaps
 
-### High-Priority Gaps (April 9, 2026 Update)
+### High-Priority Gaps (April 9–10, 2026 Update)
 1. **Agent Memory-as-a-Service:** Managed LLM-curated hierarchical memory for vertical agents
 2. **Agent Reliability Monitoring:** 90% failure rate, no mature monitoring tool; confidence calibration unsolved
 3. **Long-horizon agent observability (April 8):** No tooling for monitoring agents running 8-hour / 600+ iteration sessions — reasoning drift, strategy revision tracking, context budget management
@@ -389,6 +480,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 10. **Reasoning depth analyzer for agent pipelines (NEW April 9):** No tool that profiles sequential reasoning depth per LLM call, classifies tasks against the Depth Ceiling, and recommends where to inject explicit CoT. Theoretical basis now available (arXiv:2604.06427).
 11. **PTY-native tool execution in agent frameworks (NEW April 9):** tui-use fills the interactive terminal gap standalone, but no first-party integration exists in LangChain, LangGraph, CrewAI, or as an MCP server. Builders hitting the interactive CLI wall is a large underserved market.
 12. **AI billing intensity auditing for healthcare (NEW April 9):** AI scribes confirmed to increase coding intensity → billing inflation. Neither regulatory framework nor commercial tooling exists for automated detection/normalization. Insurers and providers both need it.
+13. **RAGEN-2 template collapse diagnostic tooling (NEW April 10):** Build analyzer that detects trajectory collapse in RL agent training pipelines, measures SNR, recommends filtering thresholds. Most teams training agents blind to whether they're learning genuine reasoning or spurious patterns.
+14. **Knowledge curation SaaS (NEW April 10):** Package Karpathy's wiki-building approach as product: feed research materials → AI builds interlinked knowledge base → team queries it. For VCs, legal, research teams; table-stakes by 2027.
+15. **Embodied AI orchestration framework (NEW April 10):** Layer atop HY-Embodied + Claude Managed Agents for cross-robot task coordination. One agent planning, multiple robots executing, abstraction over morphologies. Market opening as VLA models mature.
 
 ---
 
@@ -434,15 +528,24 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 7]: LiteRT-LM — Google's production edge inference framework, Gemma 4 E2B first-party support
 - [April 7]: T² validated through post-training — overtraining benefit survives RLHF/SFT stage
 - [April 7]: Long-horizon planning failure confirmed empirically — LLMs fail at constraint satisfaction over long horizons regardless of reasoning strength
+- [April 7]: RAGEN-2 — template collapse in agentic RL; spurious pattern learning dominates genuine reasoning; SNR-based trajectory filtering solution
+- [April 7]: Microsoft Agent Framework 1.0 — Semantic Kernel + AutoGen unification; stable APIs; MCP + A2A integration; first major framework stability commitment
+- [April 7]: HappyHorse-1.0 — temporal consistency solved for text-to-video; 2-minute coherent generation achieved; video generation moves to commodity feature
 - [April 8]: GLM-5.1 — async RL (Slime) + DSA → first open model sustaining 8-hour / 655-iteration agent sessions; SWE-bench Pro #1 among publicly accessible models
 - [April 8]: Anthropic Mythos Preview — capability-gating as deployment pattern; autonomous zero-day discovery at frontier scale; dual-use constraint forces restricted access
 - [April 8]: Frontier capability bifurcation — 19-point SWE-bench Pro gap between restricted (77.8%) and open (58.4%) models; gap is structural, not just temporary
+- [April 8]: Claude Managed Agents — cloud infrastructure for production agent scaling; session persistence + multi-agent coordination; removes months of infrastructure work
+- [April 8]: Microsoft MAI models — speech/voice/image SOTA; speech-to-text commodity pricing ($0.36/hour); first Microsoft leadership position on infrastructure-tier AI
 - [April 9]: Latent planning depth ceiling — empirically measured: ~5 steps learnable in training, ~7-8 at test time for frontier models; scale improves breadth not depth; CoT/tools mandatory for >8 sequential steps
 - [April 9]: In-Place TTT — MLP projection matrix as fast-weight session memory; no new modules; adaptive inference without external memory; adds 5th tier to memory architecture
 - [April 9]: Meta's open-source retreat — Muse Spark (MSL) is closed-source; contradicts prior assumption that Meta would continue publishing all competitive models as Llama weights
 - [April 9]: AI-induced healthcare billing inflation — AI scribes increase coding completeness → higher billed amounts; first confirmed second-order economic effect of AI deployment at scale
 - [April 9]: AI as primary tech layoff driver — 25% of March 2026 tech layoffs attributed to AI (up from 10% in Feb); Q1 2026 tech sector cuts up 40% YoY
 - [April 9]: tui-use — PTY + headless xterm unlocks interactive terminal programs for AI agents; closes the "interactive CLI stall" gap that bash subprocess calls can't handle
+- [April 10]: RAGEN-2 template collapse diagnosis — RL agents plateau from learning spurious patterns; SNR filtering enables genuine reasoning to emerge; ~40% training reduction
+- [April 10]: HY-Embodied (Tencent) — open-source VLA for robot control; cross-morphology generalization; production demo at EAIDC 2026; embodied AI moves lab→production
+- [April 10]: Knowledge curation as new AI primitive — AI building/maintaining wikis from raw research materials (Karpathy pattern); shifts paradigm from code generation to knowledge organization
+- [April 10]: Video generation temporal consistency solved — HappyHorse-1.0 SOTA; 2-minute single-pass coherent generation; market consolidation phase beginning
 
 ---
 
