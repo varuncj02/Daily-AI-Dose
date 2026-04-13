@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 10, 2026*
+*Last updated: April 13, 2026 (v3 — verified sources: DeepSeek V4/Huawei CANN, ARC-AGI-3/Symbolica, GPT-5.5 Spud signal, Musk-OpenAI trial escalation)*
 
 ---
 
@@ -27,6 +27,19 @@
 - Optimal: train smaller model 3-5× longer → rely on more inference samples at test time
 - **Limitation:** Only validated at moderate scales; extreme overtraining behavior not characterized
 - **Replaces:** Chinchilla-optimal as default for inference-heavy applications
+
+### Interactive Environment Adaptation (NEW — April 13, 2026 catch-up from March 25)
+- **ARC-AGI-3 (arXiv:2603.24621, launched March 25, 2026):** First interactive benchmark in the ARC-AGI series
+  - **Design:** Hundreds of handcrafted games, thousands of levels; agents must perceive, act, and adapt without natural language instructions or task descriptions — no static puzzle-solving
+  - **Human score:** 100%
+  - **Frontier CoT model scores:** Gemini 3.1 Pro 0.37%, GPT-5.4 0.3%, Claude Opus 4.6 0.25%, Grok 4.20 0%
+  - **Symbolica Agentica SDK (Day 1):** 36.08% on public dataset; $1,005 vs $8,900 for Opus 4.6's 0.25% → **100-180× performance gap, not a cost gap**
+  - **Why frontier models fail:** CoT extends a reasoning chain; it cannot reconstruct the underlying rule structure of an unfamiliar interactive environment
+  - **Why Agentica works:** Orchestrator-subagent architecture where orchestrator never touches raw environment state; subagents interact, write Python programs, execute against test cases (program synthesis = infer compact program from observed I/O), return compressed summaries; orchestrator maintains high-level plan without context contamination
+  - **Key architectural pattern:** `spawn(subagent, task_scope, return_summary=True)` — subagents return summaries, not raw state. This is what prevents context growth from collapsing planning capacity.
+  - **Design implication:** Program synthesis (structured model-building from evidence) is architecturally distinct from CoT (implicit reasoning over evidence). For interactive adaptive tasks, they are not substitutes.
+  - **Competition:** ARC Prize 2026 ongoing through December; $2M+ prize; Kaggle active
+  - **Source:** https://arcprize.org/blog/arc-agi-3-launch · https://www.symbolica.ai/blog/arc-agi-3
 
 ### Long-Horizon Agent Execution (NEW — April 8, 2026)
 - **GLM-5.1 (Z.AI, April 8, 2026):** First open-weight model demonstrated sustaining effective performance over 8-hour / 655-iteration autonomous agent sessions
@@ -126,6 +139,14 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ---
 
+### Orchestrator-Subagent Program Synthesis Pattern (NEW — April 13, 2026)
+- **Core pattern:** Orchestrator maintains high-level plan; subagents interact with environment, write programs from I/O examples, execute, return compressed summaries
+- **Why summary compression matters:** Raw environment state can be large; if subagents return it directly, orchestrator context fills up rapidly. Summary compression is the mechanism that enables long-horizon orchestration.
+- **When to use:** Tasks where environment rules are initially unknown but inferrable from evidence; generalizes better than CoT for adaptive rule-learning
+- **When NOT to use:** Tasks where rules are fixed and known upfront (CoT or standard RAG is sufficient); web-scale open-ended retrieval
+- **Reference implementation:** Symbolica ARC-AGI-3 harness — https://github.com/symbolica-ai/ARC-AGI-3-Agents
+- **Connection to prior patterns:** Extends the parallel sub-agent pattern (Cursor 3, April 2026) by adding the program synthesis + summary compression design constraints
+
 ## Tool Use & Orchestration (MCP, A2A, Function Calling, Terminal Agents)
 
 ### MCP (Model Context Protocol) — April 2026 State
@@ -218,6 +239,17 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Agent Evaluation & Reliability
 
+### Benchmark Landscape (April 13, 2026 Update)
+
+| Benchmark | What it tests | Human | Best AI | Notes |
+|-----------|--------------|-------|---------|-------|
+| SWE-bench Verified | Code bug-fixing | — | GPT-5.4 Pro 88.3% | Hours-scale tasks |
+| SWE-bench Pro | Hardest code tasks | — | Mythos 77.8% (restricted); GLM-5.1 58.4% (open) | Week-scale implied by MirrorCode |
+| MirrorCode | Weeks-scale autonomous coding | 100% | Opus 4.6 (weeks-scale) | Spec quality = binding constraint |
+| ARC-AGI-3 | Interactive adaptation / rule-learning | 100% | Gemini 3.1 Pro 0.37% | Symbolica Agentica 36.08% (program synthesis) |
+| CyberGym | Autonomous vulnerability reproduction | — | Mythos 83.1% | Security-specific capability measurement |
+| MCP-Atlas | Multi-tool agentic workflows | — | GLM-5.1 71.8 | Real-world agent proxy |
+
 ### Current Benchmarks (April 8, 2026 Update)
 - **SWE-bench Verified** (500 tasks): GPT-5.4 Pro leads at 88.3%, Claude Opus 4.6 at 79.3%
 - **SWE-bench Pro** (hardest tasks — UPDATED April 8):
@@ -249,7 +281,7 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ---
 
-## AI in Security & Cybersecurity (NEW — April 8, 2026)
+## AI in Security & Cybersecurity (Updated — April 10, 2026)
 
 ### Autonomous Vulnerability Discovery (Frontier Capability)
 - **Mythos Preview (Anthropic, April 7, 2026):** Agentic workflow — isolated container, LLM reads source code, forms hypotheses, executes/debugs, produces bug report + working exploit POC
@@ -262,7 +294,20 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
   Isolated container → LLM reads codebase (full context) → hypothesis → execute/debug → validate → iterate → exploit POC
   ```
 - **Dual-use problem:** Same capability that finds defensive bugs creates offensive exploits — no way to have one without the other at this capability level
-- **Current access:** Restricted to 40 vetted organizations via Project Glasswing; $100M usage credits + $4M open-source security donations
+- **Anthropic access model (Project Glasswing):** Institutional partnership — 40+ vetted organizations; $100M usage credits + $4M open-source security donations; planned Cyber Verification Program for individual researchers
+
+### Competing Governance Frameworks (NEW — April 9–10, 2026)
+- **OpenAI Trusted Access for Cyber (TAC, April 9, 2026):** Identity-tiered deployment model for GPT-5.3-Codex cyber capabilities
+  - Tier 1: KYC-verified individual access at chatgpt.com/cyber
+  - Tier 2: Enterprise team access with audit logs (via OpenAI reps)
+  - Tier 3: Invite-only red-team research access
+  - Technical safeguards: refusal training on 10M+ adversarial prompts; real-time classifiers detecting evasion; activity monitors for anomalous patterns (bulk scans)
+  - $10M API credits committed to participants
+  - Models can work autonomously for "hours or even days on complex tasks"
+- **Anthropic model:** Institutional gatekeeping (named organization partnerships)
+- **OpenAI model:** Identity-based graduated verification (broader individual access)
+- **Competition implication:** Frontier cybersecurity AI is no longer a single-vendor controlled preview — it is a competitive market with two independent governance frameworks. Access decisions are now a product differentiator.
+- **Still unresolved:** Neither framework solves the dual-use problem; identity verification reduces expected harm but doesn't prevent it. No regulatory standard for this capability class exists.
 
 ---
 
@@ -371,6 +416,14 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Open-Source Landscape
 
+### Upcoming Models (April 13, 2026 Update)
+
+| Model | Lab | Expected | Key Specs | Status |
+|-------|-----|----------|-----------|--------|
+| GPT-5.5 "Spud" | OpenAI | April 14–May 5, 2026 | Unknown; described as "big model feel," 2 years research | Pretraining done March 24; entering release window |
+| DeepSeek V4 | DeepSeek | Late April 2026 | 1T params MoE, 37B active, 1M context, Engram memory, $0.30/MTok, Apache 2.0 | V4-Lite on API nodes; full model expected late April |
+| Tencent Hunyuan 3.0 | Tencent | Early April (delayed) | ~30B params, long-context focus, agent task evaluation (Yao Shunyu) | Internal testing as of April 13 |
+
 ### Model Families (April 9, 2026 Update)
 | Family | Best Open Size | Context | License | Multimodal | SWE-bench Pro |
 |--------|---------------|---------|---------|-----------|--------------|
@@ -433,13 +486,32 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ### Production State (April 2026)
 - **SWE-bench Verified:** GPT-5.4 Pro 88.3%, Claude Opus 4.6 79.3%
-- **SWE-bench Pro (hardest):** 23.3% ceiling — hard limit of current autonomous coding
+- **SWE-bench Pro (hardest):** Mythos 77.8% (restricted); GLM-5.1 58.4% (best public); GPT-5.4 57.7%
 - **Cursor 3 (April 2, 2026):** Parallel Agents Window, Design Mode, 5-hour RL refresh
 - **Claude Code v2.1.92 (April 4, 2026):** 500K MCP results, 60% faster diffs, /cost breakdown
+
+### Long-Horizon Coding Capability Threshold (NEW — April 10, 2026)
+- **MirrorCode (Epoch AI + METR, April 10, 2026):** First benchmark at the weeks-timescale for autonomous AI coding
+  - **Task:** Reimplement a 16,000-line Go bioinformatics toolkit (gotree, 40+ CLI subcommands) without source code
+  - **Benchmark design:** Execute-only access to original binary; model must reverse-engineer behavior and design full architecture from scratch; test suites verify functional equivalence
+  - **Result:** Claude Opus 4.6 passes nearly every program up to gotree's scale; task estimated at 2–17 human engineer weeks
+  - **Scaling property:** Continued gains from more inference compute (tokens) → larger projects tractable; no hard ceiling at gotree scale
+  - **Key precondition:** Detailed, machine-checkable behavioral specification (test oracle). Without this, quality degrades — the model cannot self-verify.
+  - **Source:** https://epoch.ai/blog/mirrorcode-preliminary-results/
+
+### Specification Quality: The New Binding Constraint (NEW — April 10, 2026)
+- **Before MirrorCode:** Model capability was the bottleneck for AI-assisted engineering
+- **After MirrorCode:** Specification quality is the bottleneck. The model can do the work; the question is whether you can describe "correct" well enough to be checkable.
+- **Implication for system design:**
+  - Invest in behavioral test suites and executable specifications before deploying autonomous coding agents on projects
+  - The "spec-first" pattern (write tests → verify tests → agent implements) is the architectural unlock for weeks-scale task delegation
+  - If your team lacks comprehensive automated test coverage of existing software, that gap is now the direct blocker for AI-driven reimplementation/migration
+- **Practical planning update:** Raise the delegation ceiling. Autonomous task delegation is now viable at the weeks-long project scale, not just the hours-long subtask scale.
 
 ### Trend
 - IDE architecture shifting from code-completion to agent orchestration
 - Real-time RL feedback (5-hour checkpoint refresh in Cursor 3) enables continuous improvement without redeploy
+- MirrorCode (April 2026): task delegation ceiling raised from hours-scale to weeks-scale; spec quality is the new bottleneck
 
 ---
 
@@ -467,7 +539,7 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ## Business Opportunities & Infra Gaps
 
-### High-Priority Gaps (April 9–10, 2026 Update)
+### High-Priority Gaps (April 10, 2026 Update)
 1. **Agent Memory-as-a-Service:** Managed LLM-curated hierarchical memory for vertical agents
 2. **Agent Reliability Monitoring:** 90% failure rate, no mature monitoring tool; confidence calibration unsolved
 3. **Long-horizon agent observability (April 8):** No tooling for monitoring agents running 8-hour / 600+ iteration sessions — reasoning drift, strategy revision tracking, context budget management
@@ -483,8 +555,41 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 13. **RAGEN-2 template collapse diagnostic tooling (NEW April 10):** Build analyzer that detects trajectory collapse in RL agent training pipelines, measures SNR, recommends filtering thresholds. Most teams training agents blind to whether they're learning genuine reasoning or spurious patterns.
 14. **Knowledge curation SaaS (NEW April 10):** Package Karpathy's wiki-building approach as product: feed research materials → AI builds interlinked knowledge base → team queries it. For VCs, legal, research teams; table-stakes by 2027.
 15. **Embodied AI orchestration framework (NEW April 10):** Layer atop HY-Embodied + Claude Managed Agents for cross-robot task coordination. One agent planning, multiple robots executing, abstraction over morphologies. Market opening as VLA models mature.
+16. **Specification generation and verification tooling (NEW April 10):** MirrorCode reveals spec quality as the binding constraint for weeks-scale AI coding. No commercial tool helps teams generate comprehensive behavioral specifications, measure coverage, or maintain them as AI-verifiable artifacts. Every team deploying coding agents will need this.
+17. **Cybersecurity AI governance advisory (NEW April 10):** Two competing governance frameworks (OpenAI TAC + Anthropic Glasswing) are now competing for enterprise adoption. Enterprises need neutral comparison: capability, liability, compliance, audit requirements. Advisory practice or SaaS product.
+18. **GPU procurement advisory for frontier AI (NEW April 10):** Vera Rubin access window closing as multi-year CoreWeave deals consume supply. Specialized brokerage/advisory for GPU cloud procurement at scale — navigating CoreWeave vs. AWS vs. Azure vs. GCP across price, availability, and Vera Rubin timeline.
+19. **CANN/Ascend inference tooling (NEW April 13):** If DeepSeek V4 launches at frontier quality on CANN, there will be immediate demand for production inference optimization (batching, KV cache management, speculative decoding) for the Ascend stack. vLLM and SGLang are CUDA-native; their Ascend support is nascent. Production-grade inference engine for Ascend comparable to vLLM for CUDA is an open engineering gap.
+20. **ARC-AGI-3-style interactive evaluation harness (NEW April 13):** The benchmark's interactive format (adaptive rule-learning in novel environments) is the right evaluation paradigm for real-world agent reliability, but exists only as a competition. A generalized "interactive environment adapter" for internal agent evaluation — using teams' own environment definitions — is absent from the market.
+21. **OpenAI governance risk monitoring for enterprise customers (NEW April 13):** If Musk v. OpenAI (trial April 27) produces court-ordered governance remedies, enterprise customers face immediate uncertainty about API terms, model availability, and Microsoft partnership scope. An automated compliance-monitoring tool tracking trial developments and risk-rating governance events for enterprises with material OpenAI API dependency has a hard deadline opportunity.
 
 ---
+
+## AI Compute: Geopolitics & Hardware Stacks (NEW — April 13, 2026)
+
+### CUDA/NVIDIA Stack vs CANN/Huawei Stack
+- **As of April 2026:** The AI compute market is bifurcating into two parallel stacks, not a single global market
+- **Stack 1 — NVIDIA/CUDA/Vera Rubin:** US labs (Anthropic $6.8B CoreWeave, Meta $35B CoreWeave), TSMC manufacturing, well-established software ecosystem (NCCL, TensorRT-LLM, vLLM, SGLang). Next-gen hardware: Vera Rubin (~2× Blackwell performance), accessible late 2026–2027 to locked-in partners.
+- **Stack 2 — Huawei/CANN/Ascend 950PR:** Chinese labs (DeepSeek, Alibaba, ByteDance, Tencent), SMIC 7nm manufacturing, maturing software ecosystem (CANN, HCCL). DeepSeek V4 is the reference implementation for frontier MoE on CANN.
+
+### DeepSeek V4 + Huawei Ascend: CUDA Independence (NEW — April 13, 2026)
+- **First frontier model designed for non-CUDA compute stack** (confirmed April 4, 2026; reporting April 6–10)
+- **Architecture:** 1T parameter MoE, ~37B active per token, 1M context window (Engram conditional memory), Engram's routing mechanism partitions context into retrievable blocks — enabling 94% recall at 128K vs 45% on V3.2
+- **Hardware:** Huawei Ascend 950PR (Da Vinci architecture, SMIC 7nm). DeepSeek rewrote attention kernels, MoE routing, Engram memory, and inference pipeline for CANN, bypassing CUDA entirely
+- **V4-Lite early API results (unconfirmed, third-party):** 30% faster inference, 94% context recall at 128K tokens (vs 45% on V3.2). If confirmed, best context recall among open-weight-tier models.
+- **Strategic signal:** DeepSeek gave Huawei exclusive early hardware access to V4 while denying NVIDIA access. Chinese labs (Alibaba, ByteDance, Tencent) ordering hundreds of thousands of Ascend 950PR units; chip prices up 20%.
+- **Geopolitical significance:** First credible empirical test of the export control assumption (CUDA dependency = frontier AI bottleneck for China). If V4 performs at frontier quality: inference independence demonstrated, training independence (~1–2 years further development) under active attack.
+- **Expected release:** Late April 2026. Apache 2.0 license. Target pricing: $0.30/MTok.
+- **SWE-bench Pro expected score:** ~81% (would be #2 behind Anthropic Mythos at 77.8%)
+- **What to watch for at launch:** (1) independently verified performance on CANN vs CUDA equivalents; (2) SWE-bench Pro score; (3) Engram memory at full 1M context; (4) open weights confirmation
+- **Sources:** Reuters April 4 · TrendForce April 7 · The Decoder April 6
+
+### Engram Conditional Memory (NEW — April 13, 2026)
+- **DeepSeek paper (January 2026): "Conditional Memory via Scalable Lookup"**
+- **Mechanism:** Rather than full-context attention over 1M tokens (prohibitively expensive), Engram computes a compressed query representation, routes to relevant memory blocks, and attends only within those blocks
+- **Effect:** Near-constant inference cost as context grows (within blocks), rather than quadratic growth
+- **V4-Lite early evidence:** 94% context recall at 128K vs 45% for standard attention — this suggests Engram's routing correctly prioritizes relevant blocks
+- **Design implication:** For builders using long-context models for agentic workflows, Engram-style architectures (selective block retrieval) may be a viable middle ground between RAG (explicit retrieval) and full-context attention
+- **Connection to memory systems:** Adds a new row to the memory architecture pattern — in-context conditional lookup as an alternative to both full attention and external vector DB
 
 ## Economics & Scale (April 9, 2026 Update)
 
@@ -501,6 +606,16 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - 3.5GW additional coming online 2027 — 4.5× expansion
 - Context: Single hyperscale data center ≈ 50-100MW; 3.5GW ≈ 35-70 hyperscale data centers
 - Revenue-to-compute deal correlation: as demand tripled, compute secured for next 2-3 training generations
+
+### GPU Supply Chain Concentration (NEW — April 9–10, 2026)
+- **CoreWeave dual deals (April 9–10, 2026):**
+  - Meta $21B new commitment (April 9) → total Meta/CoreWeave: $35B through 2032
+  - Anthropic $6.8B multi-year (April 10) → provides NVIDIA Vera Rubin GPU access starting late 2026
+  - CoreWeave total revenue backlog: >$66B
+- **Vera Rubin GPU:** NVIDIA next-gen after Blackwell; ~2× performance. Both deals include phased Vera Rubin access. Production deployment of models trained on Vera Rubin: mid-to-late 2027 estimate.
+- **Structural implication:** Frontier AI compute is transitioning from a spot/shared market to a multi-year locked-in supply chain. A small number of GPU cloud providers (CoreWeave, AWS, Azure, GCP) now hold exclusive capacity agreements with frontier labs through 2030+. Independent researchers and smaller labs face structural disadvantage in securing next-gen compute.
+- **For builders:** Vera Rubin spot access will be constrained through 2026–2027. Blackwell remains the accessible path. Plan inference infrastructure procurement timelines accordingly.
+- **Anthropic custom silicon exploration (April 9–10, 2026):** Internally evaluating whether to design proprietary AI chips (not committed; no formal team or design finalized). Context: $30B run rate + Broadcom/Google TPU deal → scale may justify vertical integration. If initiated, timeline: 3–5 years to production silicon. Would follow Google (TPUs), Amazon (Trainium), Microsoft (Maia).
 
 ### AI Labor Market Impacts (NEW — April 9, 2026)
 - **Q1 2026 actuals:** U.S. tech sector cut 52,050 jobs — 40% jump from Q1 2025
@@ -546,6 +661,18 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 10]: HY-Embodied (Tencent) — open-source VLA for robot control; cross-morphology generalization; production demo at EAIDC 2026; embodied AI moves lab→production
 - [April 10]: Knowledge curation as new AI primitive — AI building/maintaining wikis from raw research materials (Karpathy pattern); shifts paradigm from code generation to knowledge organization
 - [April 10]: Video generation temporal consistency solved — HappyHorse-1.0 SOTA; 2-minute single-pass coherent generation; market consolidation phase beginning
+- [April 10]: MirrorCode — AI can do weeks-long autonomous coding if given checkable specs; capability ceiling raised from hours-scale to weeks-scale; specification quality is now the binding constraint, not model capability
+- [April 10]: OpenAI TAC vs. Anthropic Glasswing — cybersecurity AI has two competing governance frameworks; identity-tiered (OpenAI) vs. institutional-partnership (Anthropic); competitive market for highest-risk AI capability class now forming
+- [April 10]: CoreWeave GPU lock-in — $21B Meta + $6.8B Anthropic deals in 48 hours; total CoreWeave backlog >$66B; Vera Rubin access secured by top labs through multi-year contracts; spot market supply constrained through 2027
+- [April 10]: Anthropic custom silicon exploration — $30B run rate + 3.5GW TPU deal may justify vertical chip integration; currently exploratory; 3–5 year production timeline if pursued
+- [April 13 — catch-up March 25]: ARC-AGI-3 launched — first interactive adaptation benchmark; frontier CoT models score 0.2–0.3%; Symbolica orchestrator-subagent program synthesis scores 36% Day 1; 100-180× gap is architectural, not a compute gap; interactive rule-learning is a qualitatively different capability class from static task completion
+- [April 13 — catch-up April 4–10]: DeepSeek V4 confirmed on Huawei Ascend 950PR — first planned frontier model designed for non-CUDA compute stack; V4-Lite early API: 94% context recall at 128K (vs 45% V3.2), 30% faster inference; full V4 expected late April; Chinese labs ordering hundreds of thousands of Ascend units; prices up 20%; this is the first credible empirical test of the export control assumption
+- [April 13]: GPT-5.5 "Spud" entering release window — pretraining done March 24; April 14 earliest expected date; Polymarket 78% by April 30; no confirmed architecture details
+- [April 13]: AI compute stack bifurcation formalized — NVIDIA/CUDA/Vera Rubin track (US labs, CoreWeave) and Huawei/CANN/Ascend track (Chinese labs) now simultaneously under construction; both hardening in 2026
+- [April 13]: Musk v. OpenAI trial (April 27) — Musk seeking Altman's ouster + governance oversight as remedies; OpenAI filing AG complaints for anti-competitive behavior; first jury trial over nonprofit-to-for-profit conversion in AI; structural governance risk to OpenAI through Q3 2026
+- [April 13]: Orchestrator-subagent program synthesis pattern documented — ARC-AGI-3 finding; subagents return summaries (not raw state) to prevent context growth; orchestrator maintains high-level plan; framed as program synthesis (infer program from I/O examples); extends parallel sub-agent pattern with summary compression design constraint
+
+*Last updated: April 13, 2026*
 
 ---
 
