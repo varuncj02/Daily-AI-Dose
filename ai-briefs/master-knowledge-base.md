@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 13, 2026 (v3 — verified sources: DeepSeek V4/Huawei CANN, ARC-AGI-3/Symbolica, GPT-5.5 Spud signal, Musk-OpenAI trial escalation)*
+*Last updated: April 14, 2026 (v4 — verified sources: MiniMax M2.7 self-evolution, Stanford HAI 2026 AI Index)*
 
 ---
 
@@ -239,25 +239,30 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Agent Evaluation & Reliability
 
-### Benchmark Landscape (April 13, 2026 Update)
+### Benchmark Landscape (April 14, 2026 Update)
 
 | Benchmark | What it tests | Human | Best AI | Notes |
 |-----------|--------------|-------|---------|-------|
 | SWE-bench Verified | Code bug-fixing | — | GPT-5.4 Pro 88.3% | Hours-scale tasks |
-| SWE-bench Pro | Hardest code tasks | — | Mythos 77.8% (restricted); GLM-5.1 58.4% (open) | Week-scale implied by MirrorCode |
+| SWE-bench Pro | Hardest code tasks | — | Mythos 77.8% (restricted); **MiniMax M2.7 56.22% (NEW #1 open)** | Week-scale implied by MirrorCode |
+| Terminal Bench 2 | Terminal-native agent tasks | — | **MiniMax M2.7 57.0%** | New entry |
+| SWE Multilingual | Coding across languages | — | **MiniMax M2.7 76.5** | New entry |
 | MirrorCode | Weeks-scale autonomous coding | 100% | Opus 4.6 (weeks-scale) | Spec quality = binding constraint |
 | ARC-AGI-3 | Interactive adaptation / rule-learning | 100% | Gemini 3.1 Pro 0.37% | Symbolica Agentica 36.08% (program synthesis) |
+| HLE | Expert-level multi-domain questions | — | Claude Opus 4.6 / Gemini 3.1 Pro >50% | Was 8.8% (o1, early 2025); 40+ point gain in 12 months |
 | CyberGym | Autonomous vulnerability reproduction | — | Mythos 83.1% | Security-specific capability measurement |
 | MCP-Atlas | Multi-tool agentic workflows | — | GLM-5.1 71.8 | Real-world agent proxy |
 
-### Current Benchmarks (April 8, 2026 Update)
+### Current Benchmarks (April 14, 2026 Update)
 - **SWE-bench Verified** (500 tasks): GPT-5.4 Pro leads at 88.3%, Claude Opus 4.6 at 79.3%
-- **SWE-bench Pro** (hardest tasks — UPDATED April 8):
+- **SWE-bench Pro** (hardest tasks — UPDATED April 14):
   - Claude Mythos Preview: 77.8% (restricted access only)
-  - GLM-5.1: 58.4% (#1 among publicly accessible models)
+  - **MiniMax M2.7: 56.22% (NEW #1 open-weight / open-access)** — matches GPT-5.3-Codex (restricted)
+  - GLM-5.1: 58.4% (note: pending recalibration — M2.7 may surpass this; conflicting reports)
   - GPT-5.4: 57.7%
   - Claude Opus 4.6: 57.3%
   - ~~Previous top at 23.3% — this was the April 6 state; SWE-bench Pro has been updated~~
+- **HLE (Humanity's Last Exam):** 8.8% → 50%+ in 12 months — fastest capability jump on any major benchmark per Stanford AI Index 2026
 - **SWE-bench Live:** monthly updates prevent contamination
 - **CyberGym:** Mythos 83.1% / Opus 4.6 66.6% — new security-specific benchmark now tracking capability gaps
 - **MCP-Atlas:** GLM-5.1 71.8 — multi-tool agentic workflow benchmark, now relevant as real-world agent proxy
@@ -332,6 +337,22 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Result:** Model learns effective policies over 600+ step interactions without degradation — not achievable with synchronous RL pipelines
 - **Evolution:** Sequential RL → Slime async RL → long-horizon agent capability
 - **Connection to T²:** Both are training-infrastructure changes that improve inference-time performance; T² via compute allocation, Slime via trajectory length
+
+### Model-as-Optimizer-in-Training-Pipeline (NEW — April 14, 2026)
+- **Source:** MiniMax M2.7 self-evolution mechanism (open-sourced April 11, 2026)
+- **Pattern:** A deployed model acts as an agent inside its own (or another model's) RL post-training pipeline, autonomously iterating on the scaffold codebase used to train it
+- **Concrete loop:** `analyze failure trajectories → plan changes → modify scaffold code → run evaluations → compare results → commit/revert → update memory + self-feedback → repeat`
+- **Components required:**
+  1. **Short-term memory file** — markdown updated after each iteration; captures what was tried, what failed, what improved
+  2. **Self-feedback critique** — model critiques its own results before next round starts
+  3. **Self-optimization chain** — next round reads full history (all memory + feedback), not just last result
+- **Demonstrated result:** MiniMax M2.7 ran 100+ autonomous rounds, optimized sampling parameters, scaffold workflow rules, and loop detection → 30% performance improvement on internal eval sets
+- **Scope:** Currently validated for scaffold tuning (orchestration code, prompting, tool parameters). NOT general recursive self-improvement — model does not modify its own weights.
+- **Main failure mode:** Eval overfitting — if the model optimizes toward the eval it's running against, gains are spurious. Mitigation: maintain a held-out eval set that is never directly optimized against.
+- **Portability:** Pattern is model-agnostic. Can be applied by any team with (1) a tool-using frontier model, (2) a measurable eval signal, (3) a version-controlled scaffold codebase.
+- **Connection to Karpathy's AI-curated systems (April 10):** Both are instances of "AI as active participant in its own development pipeline" — curation loop for knowledge, optimization loop for RL training
+- **Practical application:** Apply to scaffold tuning, prompt optimization, agent configuration tuning, eval harness maintenance — any case where there are discrete changeable parameters and a clean eval signal
+- **Source:** https://www.minimax.io/news/minimax-m27-en
 
 ### Distillation
 - **REOPOLD (arXiv:2603.11137, March 2026):** Relaxed on-policy distillation connecting distillation to RL; 10-100× cheaper than standard RL with improved stability
@@ -416,24 +437,25 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Open-Source Landscape
 
-### Upcoming Models (April 13, 2026 Update)
+### Upcoming Models (April 14, 2026 Update)
 
 | Model | Lab | Expected | Key Specs | Status |
 |-------|-----|----------|-----------|--------|
-| GPT-5.5 "Spud" | OpenAI | April 14–May 5, 2026 | Unknown; described as "big model feel," 2 years research | Pretraining done March 24; entering release window |
+| GPT-5.5 "Spud" | OpenAI | April 14–May 5, 2026 | Unknown; described as "big model feel," 2 years research | No announcement as of April 14; Polymarket 78% by April 30 |
 | DeepSeek V4 | DeepSeek | Late April 2026 | 1T params MoE, 37B active, 1M context, Engram memory, $0.30/MTok, Apache 2.0 | V4-Lite on API nodes; full model expected late April |
-| Tencent Hunyuan 3.0 | Tencent | Early April (delayed) | ~30B params, long-context focus, agent task evaluation (Yao Shunyu) | Internal testing as of April 13 |
+| Tencent Hunyuan 3.0 | Tencent | TBD April | ~30B params, long-context focus, agent task evaluation (Yao Shunyu) | Internal testing as of April 14 |
 
-### Model Families (April 9, 2026 Update)
+### Model Families (April 14, 2026 Update)
 | Family | Best Open Size | Context | License | Multimodal | SWE-bench Pro |
 |--------|---------------|---------|---------|-----------|--------------|
+| MiniMax M2.7 | 229B total / 10B active | 204K | Modified-MIT | No | 56.22% (#1 open-access, matches restricted GPT-5.3-Codex) |
 | Llama 4 | Maverick (17B/128E) | 10M | Commercial | Native | ~54% est. |
 | Gemma 4 | 31B Dense | 256K | Apache 2.0 | Native | — |
-| GLM-5.1 | 744B total / 40B active | 200K | Apache 2.0 | No | 58.4% (#1 open) |
+| GLM-5.1 | 744B total / 40B active | 200K | Apache 2.0 | No | 58.4% (prior #1; M2.7 may have surpassed) |
 | Mistral | Small 4 | 128K | Apache 2.0 | Yes | — |
 | DeepSeek | V3 | 128K | MIT | No | — |
 
-Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8% — 19 points above best public model.
+Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8% — ~21 points above best open-access model (M2.7).
 
 ### Closed-Source Non-Llama Models (NEW — April 9, 2026)
 - **Meta Muse Spark:** Closed-source proprietary model from Meta Superintelligence Labs. Not Llama. Private API preview only. Multi-agent "Contemplating" mode. Ranks 4th on AAII v4.0.
@@ -539,7 +561,7 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ## Business Opportunities & Infra Gaps
 
-### High-Priority Gaps (April 10, 2026 Update)
+### High-Priority Gaps (April 14, 2026 Update)
 1. **Agent Memory-as-a-Service:** Managed LLM-curated hierarchical memory for vertical agents
 2. **Agent Reliability Monitoring:** 90% failure rate, no mature monitoring tool; confidence calibration unsolved
 3. **Long-horizon agent observability (April 8):** No tooling for monitoring agents running 8-hour / 600+ iteration sessions — reasoning drift, strategy revision tracking, context budget management
@@ -561,6 +583,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 19. **CANN/Ascend inference tooling (NEW April 13):** If DeepSeek V4 launches at frontier quality on CANN, there will be immediate demand for production inference optimization (batching, KV cache management, speculative decoding) for the Ascend stack. vLLM and SGLang are CUDA-native; their Ascend support is nascent. Production-grade inference engine for Ascend comparable to vLLM for CUDA is an open engineering gap.
 20. **ARC-AGI-3-style interactive evaluation harness (NEW April 13):** The benchmark's interactive format (adaptive rule-learning in novel environments) is the right evaluation paradigm for real-world agent reliability, but exists only as a competition. A generalized "interactive environment adapter" for internal agent evaluation — using teams' own environment definitions — is absent from the market.
 21. **OpenAI governance risk monitoring for enterprise customers (NEW April 13):** If Musk v. OpenAI (trial April 27) produces court-ordered governance remedies, enterprise customers face immediate uncertainty about API terms, model availability, and Microsoft partnership scope. An automated compliance-monitoring tool tracking trial developments and risk-rating governance events for enterprises with material OpenAI API dependency has a hard deadline opportunity.
+22. **RL post-training scaffold auto-optimizer tooling (NEW April 14):** MiniMax M2.7 demonstrated 30% gain via 100+ autonomous optimization rounds of the RL scaffold. Any team running RL fine-tuning needs this loop. Existing MLOps platforms (W&B, MLflow) track experiments but don't close the loop with model-driven scaffold modification. Build the tooling that wraps any team's eval harness with the M2.7 loop pattern.
+23. **Benchmark freshness service for hard AI tasks (NEW April 14):** Stanford AI Index shows HLE crossed 50% in one year (faster than designed), and model transparency is declining. There is a gap between what the benchmark community knows and what practitioners know. A continuously updated capability dashboard — running HLE subsets, ARC-AGI-3, SWE-bench Pro, Terminal Bench weekly across all major models — would be used by every serious AI team. Data product, not a model product.
+24. **Transparent independent model evaluation for enterprise procurement (NEW April 14):** Foundation Model Transparency Index average dropped from 58 to 40. Frontier models are now the least transparent in the Index's history. Enterprises making model procurement decisions need independent, methodology-disclosed capability and reliability evaluation. Commercial opportunity as voluntary lab transparency declines.
 
 ---
 
@@ -590,6 +615,26 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - **V4-Lite early evidence:** 94% context recall at 128K vs 45% for standard attention — this suggests Engram's routing correctly prioritizes relevant blocks
 - **Design implication:** For builders using long-context models for agentic workflows, Engram-style architectures (selective block retrieval) may be a viable middle ground between RAG (explicit retrieval) and full-context attention
 - **Connection to memory systems:** Adds a new row to the memory architecture pattern — in-context conditional lookup as an alternative to both full attention and external vector DB
+
+## Capability Measurement & Transparency (NEW — April 14, 2026)
+
+### Stanford HAI 2026 AI Index — Key Quantitative Findings
+- **HLE (Humanity's Last Exam):** 8.8% (o1, early 2025) → 50%+ (Claude Opus 4.6, Gemini 3.1 Pro, April 2026). Designed to last years; exceeded 50% in ~12 months. Fastest single-year gain on any major benchmark in Index history.
+- **US-China gap:** Down to 2.7% overall capability composite. Specific marker: Claude Opus 4.6 vs. ByteDance Dola-Seed 2.0 Preview = 39 Elo points on LMArena. One year ago: 150+ Elo. Note: DeepSeek V4 not yet included — gap may narrow further in next edition.
+- **Frontier model cluster:** Top US models now within ~2 points of each other on most benchmarks. Differentiation shifts to cost, reliability, deployment profile — not raw capability.
+- **Foundation Model Transparency Index (FMTI):** Average score dropped 58 → 40 out of 100. Trend reversed from 2022-2024 (when transparency was increasing). Frontier models are now the *least* transparent in the Index's history. Implication: vendor-provided benchmark claims and training disclosures are less reliable than ever.
+- **AI adoption:** >50% of world population uses AI (faster adoption rate than PC or internet); 88% of organizations; 4 in 5 university students.
+- **US private investment vs. China:** $285.9B (US) vs $12.4B (China) in 2025. China leads on publications, patents, industrial robotics. US leads on frontier model count and private capital.
+- **US AI talent inflows:** Down 89% since 2017; 80% decline in the last year alone. Long-term strategic risk signal.
+- **Source:** https://hai.stanford.edu/ai-index/2026-ai-index-report
+
+### Workforce Impact — First Measurable Entry-Level Displacement
+- **Pattern confirmed:** 22-25 year olds in high-AI-exposure fields (software engineering, customer service) — employment declining. Workers 30+ in same fields — growing 6-12%.
+- **Interpretation:** AI is eliminating the on-ramp, not the expert tier. Senior engineers are more productive with AI; entry-level slots are being reduced before being filled.
+- **Key nuance:** Effect is concentrated in the youngest workers, not general workforce. Senior roles growing in productivity. Mid-career roles largely unaffected so far.
+- **Connection to prior AI labor data (April 9):** Q1 2026 saw 40% YoY jump in tech layoffs; 25% attributed to AI in March. Stanford Index adds the age-stratified view: these layoffs are disproportionately hitting entry-level.
+
+---
 
 ## Economics & Scale (April 9, 2026 Update)
 
@@ -671,6 +716,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 13]: AI compute stack bifurcation formalized — NVIDIA/CUDA/Vera Rubin track (US labs, CoreWeave) and Huawei/CANN/Ascend track (Chinese labs) now simultaneously under construction; both hardening in 2026
 - [April 13]: Musk v. OpenAI trial (April 27) — Musk seeking Altman's ouster + governance oversight as remedies; OpenAI filing AG complaints for anti-competitive behavior; first jury trial over nonprofit-to-for-profit conversion in AI; structural governance risk to OpenAI through Q3 2026
 - [April 13]: Orchestrator-subagent program synthesis pattern documented — ARC-AGI-3 finding; subagents return summaries (not raw state) to prevent context growth; orchestrator maintains high-level plan; framed as program synthesis (infer program from I/O examples); extends parallel sub-agent pattern with summary compression design constraint
+- [April 14]: MiniMax M2.7 open-sourced — 229B/10B-active MoE, Modified-MIT, 56.22% SWE-bench Pro (matches restricted GPT-5.3-Codex, #1 open-access); self-evolution mechanism validated in production: 100+ autonomous scaffold optimization rounds → 30% performance improvement; model-as-optimizer-in-training-pipeline is now a demonstrated practice, not a speculation; scope limit: scaffold code only, not weights
+- [April 14]: Stanford AI Index 2026 published — US-China frontier gap: 39 Elo points (2.7%); HLE: 8.8% → 50%+ in 12 months (fastest benchmark gain in Index history); FMTI transparency: 58 → 40 (frontier models now least transparent in Index history); entry-level job displacement confirmed: 22-25 yo workers in software engineering and customer service declining; open-source model tier now in range of restricted frontier coding benchmarks (M2.7 = GPT-5.3-Codex on SWE-Pro)
+- [April 14]: GPT-5.5 "Spud" — still not announced as of April 14; Polymarket 78% by April 30; any-day release expected
 
 *Last updated: April 13, 2026*
 
