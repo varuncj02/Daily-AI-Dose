@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 14, 2026 (v4 — verified sources: MiniMax M2.7 self-evolution, Stanford HAI 2026 AI Index)*
+*Last updated: April 15, 2026 (v5 — verified sources: Claude Code Routines, GPT-5.4-Cyber, Gemini Robotics-ER 1.6, UC Berkeley BenchJack, vLLM v0.19.0)*
 
 ---
 
@@ -230,6 +230,20 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Early customers:** Notion, Rakuten, Asana
 - **Production signal:** Removes weeks of infrastructure work; shifts bottleneck from "can Claude be an agent" to "how do we run production agents at scale"
 
+### Claude Code Routines — Durable Agentic Execution (NEW — April 14, 2026)
+- **What it is:** Saved, schedulable AI automations that run on Anthropic's cloud infrastructure — not on the user's local machine
+- **Architecture (key):** Session state = durable log on Anthropic servers. Compute = ephemeral containers provisioned on-demand. This is saga/event-sourcing applied to LLM agents. The invariant: the log always exists; compute is replaceable.
+  - `Trigger → Durable Log → Ephemeral Container → Tools → External Systems → Result → Log`
+- **Triggers:** (1) scheduled cadence (cron-style), (2) inbound API webhook, (3) GitHub events (PR opened, push, issue, etc.)
+- **Connectors:** Slack, Linear, Google Drive, GitHub
+- **Configuration:** A routine = prompt + repos + connectors + trigger. Stored as a cloud-side saved configuration.
+- **Usage limits:** Pro=5/day, Max=15, Team/Enterprise=25
+- **Availability:** Research preview on all paid plans (Pro, Max, Team, Enterprise)
+- **Performance:** P50 TTFT dropped ~60%; P95 dropped >90% vs. session-persistent containers. Containers not on critical path for user-facing interactions.
+- **Relationship to Claude Managed Agents:** Managed Agents is the infrastructure layer; Routines is the user-facing product built on top (scheduled, event-driven, no laptop required)
+- **Current tradeoffs:** Context budget management for long-running logs unsolved; debugging opacity in research preview; vendor lock-in (log on Anthropic infra); connector scope limited to 4 integrations
+- **Design pattern:** Same as Temporal/Step Functions for workflow orchestration — now a Claude product
+
 ### Pattern Consolidation
 - Agent frameworks (LangGraph, AutoGen, Agent Framework) converging on graph-based orchestration
 - MCP as lingua franca for tool definition (ecosystem moving toward this)
@@ -267,6 +281,29 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **CyberGym:** Mythos 83.1% / Opus 4.6 66.6% — new security-specific benchmark now tracking capability gaps
 - **MCP-Atlas:** GLM-5.1 71.8 — multi-tool agentic workflow benchmark, now relevant as real-world agent proxy
 
+### CRITICAL: Benchmark Integrity Collapse (UC Berkeley BenchJack, April 12, 2026)
+- **Finding:** UC Berkeley (Dawn Song, Alvin Cheung) built **BenchJack** — automated exploit agent that achieves near-perfect benchmark scores without solving any tasks
+- **Method:** Two-phase exploit: (1) probe benchmark infrastructure to map evaluation mechanism; (2) craft minimal exploit that achieves perfect score via harness vulnerability
+- **Benchmarks broken and scores achieved:**
+  - SWE-bench Verified: 100% (10-line conftest.py patches test infrastructure)
+  - SWE-bench Pro: 100%
+  - Terminal-Bench: 100% (/usr/bin/curl replaced with trojaned wrapper for uvx binary)
+  - WebArena: ~100% (file:// URL reads gold answer from task config in Chromium)
+  - FieldWorkArena: 100%
+  - CAR-bench: 100%
+  - GAIA: 98%
+  - OSWorld: 73%
+- **Root cause:** The gap between evaluation mechanism and task completion is an exploitable attack surface in every tested harness
+- **Implication for all published benchmark scores:** Any score on these 8 benchmarks from a system with access to test infrastructure is retroactively suspect. This does NOT mean all published results are wrong — it means they can't be distinguished from exploit results without independent auditing
+- **Required harness properties for credible evals (post-BenchJack):**
+  1. Containerized task environment (gVisor or equivalent)
+  2. No shared filesystem between agent and task config/evaluation mechanism
+  3. Scoring via external verifier process (zero shared state with agent)
+  4. No injectable tool wrappers in agent's PATH or environment
+  5. Deterministic, reproducible protocol with version-controlled task definitions
+- **Build implication:** Evaluation harness isolation is now a prerequisite, not an optimization. If you're shipping benchmark results, audit your harness against BenchJack's exploit categories first.
+- **Reference:** https://rdi.berkeley.edu/blog/trustworthy-benchmarks-cont/
+
 ### Reliability Gap (Critical — April 2026)
 - **Finding:** 90% of deployed legacy agents fail within weeks (Harvard Berkman Klein / Fortune, March-April 2026)
 - **Root cause:** Lack of architectural depth, no confidence calibration
@@ -301,18 +338,21 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Dual-use problem:** Same capability that finds defensive bugs creates offensive exploits — no way to have one without the other at this capability level
 - **Anthropic access model (Project Glasswing):** Institutional partnership — 40+ vetted organizations; $100M usage credits + $4M open-source security donations; planned Cyber Verification Program for individual researchers
 
-### Competing Governance Frameworks (NEW — April 9–10, 2026)
-- **OpenAI Trusted Access for Cyber (TAC, April 9, 2026):** Identity-tiered deployment model for GPT-5.3-Codex cyber capabilities
-  - Tier 1: KYC-verified individual access at chatgpt.com/cyber
-  - Tier 2: Enterprise team access with audit logs (via OpenAI reps)
-  - Tier 3: Invite-only red-team research access
-  - Technical safeguards: refusal training on 10M+ adversarial prompts; real-time classifiers detecting evasion; activity monitors for anomalous patterns (bulk scans)
-  - $10M API credits committed to participants
-  - Models can work autonomously for "hours or even days on complex tasks"
-- **Anthropic model:** Institutional gatekeeping (named organization partnerships)
-- **OpenAI model:** Identity-based graduated verification (broader individual access)
-- **Competition implication:** Frontier cybersecurity AI is no longer a single-vendor controlled preview — it is a competitive market with two independent governance frameworks. Access decisions are now a product differentiator.
-- **Still unresolved:** Neither framework solves the dual-use problem; identity verification reduces expected harm but doesn't prevent it. No regulatory standard for this capability class exists.
+### Competing Governance Frameworks (Updated — April 14-15, 2026)
+- **OpenAI Trusted Access for Cyber (TAC, April 9, 2026 → GPT-5.4-Cyber expansion April 14, 2026):**
+  - April 9: Identity-tiered access program for GPT-5.3-Codex cyber capabilities (Tier 1/2/3)
+  - **April 14 (NEW):** OpenAI launched **GPT-5.4-Cyber** — version of GPT-5.4 fine-tuned for cybersecurity, with explicit "cyber-permissive" refusal training. New capabilities added: **binary reverse engineering** (analyzing compiled software without source — disassembly/decompiled code analysis for malware and vulnerabilities). Access via chatgpt.com/cyber (individuals, identity-verified) or enterprise rep. Targeting thousands of individuals + hundreds of security teams.
+  - Technical safeguards: refusal training on 10M+ adversarial prompts; real-time classifiers detecting evasion; activity monitors for bulk scans
+  - $10M API credits committed; alignment note: GPT-5.4-Cyber is fine-tuned to be "cyber-permissive" — meaning the refusal boundary is explicitly recalibrated, not just the base model with loose prompting
+  - **Direct competitive response** to Anthropic Mythos (April 7) — GPT-5.4-Cyber arrived 7 days after Mythos was announced
+- **Anthropic Project Glasswing (April 7 → expanded April 15):**
+  - April 7: 11 named institutional partners (AWS, Apple, Broadcom, Cisco, CrowdStrike, Google, JPMorgan Chase, Linux Foundation, Microsoft, NVIDIA, Palo Alto Networks)
+  - **April 15 (NEW):** Expanded to **40+ additional organizations** that build/maintain critical software infrastructure; $100M usage credits total committed; $4M direct donations to OSS security orgs; Cyber Verification Program planned for individual researchers
+- **Governance model divergence:**
+  - Anthropic: Institutional gatekeeping (partnerships, named organizations, high-verification)
+  - OpenAI: Identity-based graduated verification (broader individual access, lower barrier but tiered capability)
+- **Competition implication:** Both labs now have competing "responsible offensive AI" products shipping simultaneously. Access decisions are a product differentiator. The market for enterprise cybersecurity AI tooling is live.
+- **Still unresolved:** Neither framework solves the dual-use problem. No regulatory standard for this capability class. Identity verification reduces expected harm but doesn't prevent it.
 
 ---
 
@@ -464,7 +504,13 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 ### Infrastructure
 - **llama.cpp b8664:** CPU-optimized inference, latest CUDA support
 - **Ollama v0.20.2:** Native MLX (Apple Silicon), Gemma 4, Llama 4 Scout, Qwen3-VL
-- **vLLM / SGLang:** Production serving; waiting for Saguaro integration
+- **vLLM v0.19.0 (April 2026 — NEW):** 448 commits, 197 contributors
+  - Zero-bubble async scheduling now compatible with speculative decoding (removes prior constraint where enabling spec decode forced sync scheduling)
+  - Elastic Expert Parallelism (EPLB Milestone 2): dynamic GPU scaling for MoE expert shards; faster EP model loading — relevant for Gemma 4 26B MoE, GLM-5.1, MiniMax M2.7 at cluster scale
+  - FlexKV: smart KV cache offloading — stores only high-reuse blocks (replaces blunt offloading); new backend for better long-context cost management
+  - Full Gemma 4 support (requires transformers≥5.5.0); AMD/ROCm support for Gemma 4
+  - ~~"Waiting for Saguaro integration"~~ — Saguaro integration status unchanged; v0.19.0 focuses on spec decode + EPLB + KV
+- **SGLang:** Latest stable v0.5.9 (Feb 2026); RadixArk commercial spinout valued ~$400M
 
 ### Quantization
 - 4-bit and 2-bit quantized weights: Gemma 4 E2B at sub-1.5GB RAM
@@ -473,6 +519,22 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 ---
 
 ## Embodied AI & Robotics (NEW — April 2–9, 2026)
+
+### Gemini Robotics-ER 1.6 + Boston Dynamics Spot (NEW — April 14-15, 2026)
+- **What shipped:** Google DeepMind released Gemini Robotics-ER 1.6 and integrated it into Boston Dynamics' Orbit software (AIVI + AIVI-Learning systems) for Spot's industrial facility inspection workflows
+- **Headline capability:** **Instrument reading** — reading analog gauges, pressure meters, sight glasses in industrial environments
+  - ER 1.5: ~23% accuracy (lacked dedicated capability; fell back to narrow classical CV model)
+  - ER 1.6: **93% accuracy** (agentic vision pipeline)
+- **How instrument reading works (agentic vision decomposition):**
+  1. Spatial reasoning to locate and segment gauge face in scene (VLM)
+  2. Structured extraction of dial/pointer position
+  3. Code execution to compute angle → value mathematically
+  4. Context lookup for scale/units from instrument label or prior knowledge
+  - This is NOT end-to-end VLM inference — it's a multimodal agent loop: spatial reasoning + structured extraction + code computation
+- **Broader ER 1.6 improvements over 1.5:** Better pointing accuracy, counting, success detection (all spatial/physical reasoning tasks)
+- **Production deployment:** Live today in Boston Dynamics Orbit platform; Spot robots walking industrial facilities and logging instrument readings autonomously
+- **Key insight for builders:** "General VLM + code execution" now outperforms narrowly-trained CV for physical interpretation tasks at production scale. Pattern generalizes: visual grounding → structured extraction → code-based computation > end-to-end VLM for any task requiring mathematical/geometric interpretation
+- **Sources:** https://blog.google/innovation-and-ai/models-and-research/google-deepmind/gemini-robotics-er-1-6/ · https://bostondynamics.com/blog/aivi-learning-now-powered-google-gemini-robotics/
 
 ### Vision-Language-Action Models
 - **HY-Embodied (Tencent, April 9):** MoT-2B weights open-sourced; 32B frontier variant for robot control
@@ -586,6 +648,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 22. **RL post-training scaffold auto-optimizer tooling (NEW April 14):** MiniMax M2.7 demonstrated 30% gain via 100+ autonomous optimization rounds of the RL scaffold. Any team running RL fine-tuning needs this loop. Existing MLOps platforms (W&B, MLflow) track experiments but don't close the loop with model-driven scaffold modification. Build the tooling that wraps any team's eval harness with the M2.7 loop pattern.
 23. **Benchmark freshness service for hard AI tasks (NEW April 14):** Stanford AI Index shows HLE crossed 50% in one year (faster than designed), and model transparency is declining. There is a gap between what the benchmark community knows and what practitioners know. A continuously updated capability dashboard — running HLE subsets, ARC-AGI-3, SWE-bench Pro, Terminal Bench weekly across all major models — would be used by every serious AI team. Data product, not a model product.
 24. **Transparent independent model evaluation for enterprise procurement (NEW April 14):** Foundation Model Transparency Index average dropped from 58 to 40. Frontier models are now the least transparent in the Index's history. Enterprises making model procurement decisions need independent, methodology-disclosed capability and reliability evaluation. Commercial opportunity as voluntary lab transparency declines.
+25. **Self-hosted durable agentic execution for compliance-sensitive industries (NEW April 15):** Claude Code Routines delivers the saga/event-sourcing pattern for LLM agents as a hosted product. Banks, healthcare providers, and legal firms need the same architecture but can't use Anthropic-hosted infrastructure (data residency, compliance). An open-source, self-hostable implementation of: durable event log + ephemeral containers + trigger system + connector framework is a clear infra product gap. Tech: Temporal/Step Functions for orchestration, any LLM API, Docker/Kubernetes for sandboxed containers.
+26. **Evaluation harness integrity auditor (NEW April 15):** BenchJack (UC Berkeley) demonstrates no standard tool exists for auditing agent benchmarks for exploitability. A tool that automatically probes a harness for BenchJack-class exploits (shared filesystem access, readable task config, injectable tool wrappers) would immediately serve every lab and team running agent evals. This is a research-to-product gap closeable by a small team using BenchJack's documented methodology.
+27. **Agentic vision for industrial inspection (NEW April 15):** Gemini Robotics-ER 1.6 shows that VLM + code execution outperforms narrow CV for gauge/instrument reading at 93% accuracy. The same decomposition pattern (spatial grounding → structured extraction → code computation) applies to: manufacturing quality inspection, energy facility dashboards, warehouse shelf compliance, pharmaceutical label verification. Building domain-specific pipelines using frontier VLMs + code execution for vertical inspection use cases is an immediately accessible product opportunity.
 
 ---
 
@@ -719,8 +784,15 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 14]: MiniMax M2.7 open-sourced — 229B/10B-active MoE, Modified-MIT, 56.22% SWE-bench Pro (matches restricted GPT-5.3-Codex, #1 open-access); self-evolution mechanism validated in production: 100+ autonomous scaffold optimization rounds → 30% performance improvement; model-as-optimizer-in-training-pipeline is now a demonstrated practice, not a speculation; scope limit: scaffold code only, not weights
 - [April 14]: Stanford AI Index 2026 published — US-China frontier gap: 39 Elo points (2.7%); HLE: 8.8% → 50%+ in 12 months (fastest benchmark gain in Index history); FMTI transparency: 58 → 40 (frontier models now least transparent in Index history); entry-level job displacement confirmed: 22-25 yo workers in software engineering and customer service declining; open-source model tier now in range of restricted frontier coding benchmarks (M2.7 = GPT-5.3-Codex on SWE-Pro)
 - [April 14]: GPT-5.5 "Spud" — still not announced as of April 14; Polymarket 78% by April 30; any-day release expected
+- [April 15]: Claude Code Routines — first production implementation of saga/event-sourcing pattern for LLM agent execution as a consumer product; session state = durable log on Anthropic servers; compute = ephemeral containers; triggers (schedule/webhook/GitHub) append to log, not spawn processes; mental model for "coding agent" shifts from interactive REPL to durable background worker
+- [April 15]: UC Berkeley BenchJack — 8 major agent benchmarks proven exploitable to achieve near-perfect scores without solving tasks; all published scores on SWE-bench Verified, SWE-bench Pro, WebArena, Terminal-Bench, GAIA, OSWorld, FieldWorkArena, CAR-bench are retroactively suspect without independent harness audit; containerized isolation now prerequisite for credible evaluation
+- [April 15]: GPT-5.4-Cyber — new "cyber-permissive" fine-tune category established; binary reverse engineering added to LLM capability surface; refusal boundary treated as a tunable parameter per verified professional use case; direct competitive response to Anthropic Mythos within 7 days
+- [April 15]: Project Glasswing expanded — initial 11 partners → 40+ organizations with $100M usage credits; establishes tiered identity-gated deployment as the template for all high-risk AI capability releases
+- [April 15]: Gemini Robotics-ER 1.6 production deployment — 23% → 93% instrument reading accuracy via agentic vision (VLM + code execution decomposition); confirms general model + tool-use outperforms narrow CV in production physical AI; Boston Dynamics Spot integration is the first announced external production deployment of Robotics-ER
+- [April 15]: vLLM v0.19.0 — zero-bubble speculative decoding now compatible with async scheduling; Elastic Expert Parallelism Milestone 2 for MoE clusters; FlexKV smarter KV cache offloading; Gemma 4 full support
+- [April 15]: GPT-6 "Spud" did not ship April 14; expected window moved to April 21–May 25; pre-training complete March 24; all capability claims (40%+ gap, HumanEval 95%, MATH 85%, 2M context) remain unverified until public release
 
-*Last updated: April 13, 2026*
+*Last updated: April 15, 2026*
 
 ---
 
