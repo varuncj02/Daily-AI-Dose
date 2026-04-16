@@ -157,10 +157,17 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Context pollution:** Previously a blocker with many MCP attachments — now resolved per Simon Willison (April 2026)
 - **Gap:** No curated, quality-graded MCP server registry exists (5,800 servers with chaotic discovery)
 
-### OpenAI Agents SDK — April 2026
+### OpenAI Agents SDK — April 2026 (Updated April 15, 2026)
 - `list_resources()` / `read_resource()` on MCPServer: dynamic tool discovery at runtime
 - Handoff history consolidation: multi-agent chain history compressed to single labeled message (~30-50% token reduction on deep chains)
 - Configurable tool error handling: graceful degradation vs. hard stop — now configurable
+- **April 15, 2026 "Next Evolution" update:** Three new primitives:
+  1. **Sandboxing**: agents run in isolated execution environments; provider integrations: Blaxel, Cloudflare, Vercel; **Manifest abstraction** describes portable workspace layout (files, tools, permissions) before execution begins — this is "policy at workspace level" rather than "policy at prompt level"
+  2. **Formalized Harness**: explicit control plane that owns the agent loop — model calls, tool routing, handoffs, approval gates, tracing, crash recovery, run state. Previously assembled by hand; now a first-class SDK layer with defined semantics
+  3. **Subagents** (forthcoming Python + TypeScript): orchestrator spawns specialized subordinate agents for parallel, modular task decomposition
+  4. 100+ model support — any Chat Completions-compatible API endpoint
+- **Architecture implication:** The harness is now a named layer in the agent stack. Definition: harness owns loop, routing, handoffs, approvals, tracing, recovery, run state. If you are designing agent systems, this is the vocabulary and division of responsibilities to use.
+- **Competitive implication:** Teams whose value prop was "we built a better harness on top of OpenAI" lost moat on April 15, 2026
 
 ### Google A2A Protocol
 - Agent-to-agent communication standard
@@ -177,6 +184,16 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Agent Architectures & Patterns
 
+### File-as-Bus Coordination Pattern (NEW — April 14-16, 2026)
+- **Source:** AiScientist (arXiv:2604.13018, April 14, 2026) — multi-agent ML research engineering
+- **Problem it solves:** Shared context window is a poor coordination medium for long-horizon multi-agent tasks — grows unboundedly, creates dependencies between agents, corrupts planning with irrelevant execution details
+- **Mechanism:** Each agent reads its input artifacts from a structured file workspace → executes → writes output artifacts (plan.md, analysis.md, code/, results/, evidence/). No agent holds shared context from other agents. The Orchestrator maintains a workspace map (what exists, what's current, what's stale).
+- **Ablation evidence:** Removing File-as-Bus costs 6.41 PaperBench points + 31.82% MLE-Bench Lite Any Medal percentage — the single largest performance driver in the system
+- **Results with File-as-Bus:** 10.54-point PaperBench improvement over baseline; 81.82% MLE-Bench Lite Any Medal
+- **Relationship to Claude Code Routines (April 15):** Both implement durable artifact storage as the coordination mechanism — Routines via Anthropic's durable log, File-as-Bus via filesystem artifacts
+- **Relationship to OpenAI Agents SDK Manifest (April 15):** Manifest abstraction defines workspace structure before execution; File-as-Bus defines artifact protocol within that workspace — complementary specs
+- **Build implication:** For any multi-agent workflow spanning >3 steps or >1 agent, implement File-as-Bus before relying on context passing. The evidence for performance improvement is strong.
+
 ### Canonical Agent Architecture (April 2026)
 ```
 [User Goal]
@@ -187,6 +204,11 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
  ├─ Episodic
  ├─ Semantic
  └─ Procedural
+     ↓
+[File-as-Bus Workspace]      ← AiScientist: artifact coordination layer (April 2026) [NEW]
+ ├─ plan.md / analysis.md
+ ├─ code/ / results/
+ └─ evidence/ (each agent re-grounds on durable artifacts)
      ↓
 [Retriever / RAG]            ← Harrier-OSS multilingual embeddings (March 2026)
      ↓
@@ -229,6 +251,16 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Pricing:** Standard Claude tokens + $0.08/session-hour runtime fee
 - **Early customers:** Notion, Rakuten, Asana
 - **Production signal:** Removes weeks of infrastructure work; shifts bottleneck from "can Claude be an agent" to "how do we run production agents at scale"
+
+### Anthropic Full-Stack AI Studio Positioning (NEW — April 14-16, 2026)
+- **Signal:** Anthropic reportedly preparing to launch Claude Opus 4.7 + AI Design Tool simultaneously (The Information, April 14-15; Vertex AI console leak April 16)
+- **Design Tool:** Natural-language-to-product for websites, landing pages, presentations. Competes with Gamma, Figma, Webflow
+- **Strategic interpretation:** Anthropic repositioning from "model API provider" to "full-stack AI studio." First move into a vertical product surface (creative/design) where it has no prior presence
+- **Market reaction:** Figma -6%, Adobe -2.7%, Wix -4.7%, GoDaddy -3% on April 14-15 — competitive threat perceived as real by public markets
+- **Claude Code source leak context (March 31):** 512K lines published to npm accidentally; exposed upcoming model IDs including Opus 4.7, Sonnet 4.8
+- **Opus 4.7:** Incremental Opus update (4.5 → Nov 2025, 4.6 → Feb 2026, 4.7 → April 2026); improvements expected in multi-step reasoning, coding, multi-agent orchestration
+- **Status as of April 16:** Not officially launched. The Information report + Vertex AI leak = high confidence imminent. Do not update model routing decisions until official release + benchmarks
+- **Broader pattern:** Frontier lab business model bifurcation — labs moving into vertical product surfaces (design, research, code) vs. remaining pure API. This is the same pattern as OpenAI launching ChatGPT features that compete with plugin-dependent partners
 
 ### Claude Code Routines — Durable Agentic Execution (NEW — April 14, 2026)
 - **What it is:** Saved, schedulable AI automations that run on Anthropic's cloud infrastructure — not on the user's local machine
@@ -651,6 +683,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 25. **Self-hosted durable agentic execution for compliance-sensitive industries (NEW April 15):** Claude Code Routines delivers the saga/event-sourcing pattern for LLM agents as a hosted product. Banks, healthcare providers, and legal firms need the same architecture but can't use Anthropic-hosted infrastructure (data residency, compliance). An open-source, self-hostable implementation of: durable event log + ephemeral containers + trigger system + connector framework is a clear infra product gap. Tech: Temporal/Step Functions for orchestration, any LLM API, Docker/Kubernetes for sandboxed containers.
 26. **Evaluation harness integrity auditor (NEW April 15):** BenchJack (UC Berkeley) demonstrates no standard tool exists for auditing agent benchmarks for exploitability. A tool that automatically probes a harness for BenchJack-class exploits (shared filesystem access, readable task config, injectable tool wrappers) would immediately serve every lab and team running agent evals. This is a research-to-product gap closeable by a small team using BenchJack's documented methodology.
 27. **Agentic vision for industrial inspection (NEW April 15):** Gemini Robotics-ER 1.6 shows that VLM + code execution outperforms narrow CV for gauge/instrument reading at 93% accuracy. The same decomposition pattern (spatial grounding → structured extraction → code computation) applies to: manufacturing quality inspection, energy facility dashboards, warehouse shelf compliance, pharmaceutical label verification. Building domain-specific pipelines using frontier VLMs + code execution for vertical inspection use cases is an immediately accessible product opportunity.
+28. **Execution-enabled literature review as a service (NEW April 16):** arXiv:2604.12198 proves the mini research loop works at scale for computational papers. Same pipeline (parse claims → write reproduction code → execute in sandbox → compare → flag concerns) applies to finance, data science, economics, clinical research analysis. No production product exists outside academic lab demos. Commercially viable immediately for systematic reviewers, journals, large financial institutions with in-house research.
+29. **Harness-as-a-service for regulated industries (NEW April 16):** OpenAI's harness SDK runs on OpenAI infrastructure with OpenAI models. Healthcare, finance, defense teams need the same control plane (loop, routing, handoffs, approvals, tracing, recovery, run state) on their own infrastructure with their own model choices. Open-source harness implementation with pluggable execution backends + pluggable model APIs + audit-grade tracing fills this gap. Vocabulary is now established (OpenAI defined what "harness" means); self-hosted implementation is absent.
+30. **Competitive intelligence service for AI-competing verticals (NEW April 16):** Labs launching products in design (Anthropic design tool), research (OpenAI deep research), productivity (Google Notebook LM) are now direct competitors to vertical SaaS companies. These companies need real-time monitoring: what lab products launched, what capabilities, which customer segments threatened. Monitoring + structured analysis product. No one has built this specifically for "AI labs as direct product competitors."
 
 ---
 
@@ -743,6 +778,37 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ---
 
+## AI in Science (NEW — April 14-16, 2026)
+
+### Autonomous Scientific Research Agents
+
+#### The Mini Research Loop (arXiv:2604.12198, April 14, 2026)
+- **Pattern:** Read paper → reproduce (write + run code) → compare output to reported results → critique (flag discrepancies as concerns) → extend
+- **Scale validation:** 111 open-access computational physics papers, Claude Opus 4.6
+- **Key finding:** Agent raised substantive concerns on ~42% of papers; **97.7% of those concerns required execution to surface** — invisible from reading text alone
+- **Depth validation:** On one Nature Communications paper, agent produced a publishable Comment by running missing calculations unsupervised
+- **Critical implication:** A research AI without code execution operates at ~2.3% effectiveness on real technical concern detection. Execution is the primary value driver, not language understanding
+- **Domain caveat:** Validated for computational physics (reproducible numerical claims). Extension to non-computational fields requires execution analogs
+- **Correct architecture for research QA:**
+  ```
+  Parse claims → Write reproduction code → Execute in sandbox → Compare to reported → Flag discrepancies
+  ```
+- **Source:** https://arxiv.org/abs/2604.12198
+
+#### AiScientist (arXiv:2604.13018, April 14, 2026)
+- **Task:** Long-horizon ML research engineering (comprehension → setup → implementation → experiments → debugging over hours/days)
+- **Architecture:** File-as-Bus (durable artifact workspace) + hierarchical orchestrator-subagent pattern
+- **Performance:** 10.54-point PaperBench improvement; 81.82% MLE-Bench Lite Any Medal
+- **Source:** https://arxiv.org/abs/2604.13018
+
+#### Current State of AI Research Agents (April 2026)
+- Autonomously reproduces computational papers at scale (111 paper demo), with meaningful concern detection
+- Can produce publishable scientific output in narrow computational domains
+- **Still not demonstrated:** FPR measurement; generalization beyond computational fields; multi-month independent research
+- **Emerging category:** Execution-enabled literature QA — commercially viable in finance, data science, clinical analysis
+
+---
+
 ## Concept Evolution Log
 
 - [April 6]: T² scaling — pretraining should account for inference cost; overtrain smaller models for agent workloads
@@ -791,8 +857,13 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 15]: Gemini Robotics-ER 1.6 production deployment — 23% → 93% instrument reading accuracy via agentic vision (VLM + code execution decomposition); confirms general model + tool-use outperforms narrow CV in production physical AI; Boston Dynamics Spot integration is the first announced external production deployment of Robotics-ER
 - [April 15]: vLLM v0.19.0 — zero-bubble speculative decoding now compatible with async scheduling; Elastic Expert Parallelism Milestone 2 for MoE clusters; FlexKV smarter KV cache offloading; Gemma 4 full support
 - [April 15]: GPT-6 "Spud" did not ship April 14; expected window moved to April 21–May 25; pre-training complete March 24; all capability claims (40%+ gap, HumanEval 95%, MATH 85%, 2M context) remain unverified until public release
+- [April 16]: OpenAI Agents SDK "Next Evolution" — harness formalized as explicit control plane (loop, routing, handoffs, approvals, tracing, recovery, run state); sandboxing integration (Blaxel, Cloudflare, Vercel) with Manifest abstraction for portable workspace policy; subagents forthcoming; 100+ model support. The harness layer is now a named, defined SDK component rather than a builder-assembled pattern
+- [April 16]: File-as-Bus coordination pattern validated quantitatively — AiScientist (arXiv:2604.13018): removing structured artifact workspace coordination costs 6.41 PaperBench points + 31.82% MLE-Bench Lite performance; context-window coordination is empirically inferior to durable artifact sharing for long-horizon multi-agent tasks
+- [April 16]: Autonomous research agents demonstrated at scale — arXiv:2604.12198: 42% of 111 computational physics papers received substantive concerns; 97.7% of concerns required code execution to surface; agent produced publishable Comment unsupervised. Key update: execution (not language understanding) is the primary value driver for AI-assisted scientific review
+- [April 16]: Anthropic full-stack product expansion — The Information report + Vertex AI leak confirm Claude Opus 4.7 + AI design tool (websites, landing pages, presentations) imminent. Market reaction (Figma -6%, Adobe -2.7%) confirms competitive threat perceived as real. Frontier model labs are moving from API providers to vertical product studios
+- [April 16]: GPT-6 still not launched; DeepSeek V4 still expected late April; both remain major pending developments
 
-*Last updated: April 15, 2026*
+*Last updated: April 16, 2026*
 
 ---
 
