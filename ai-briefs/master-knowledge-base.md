@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 15, 2026 (v5 — verified sources: Claude Code Routines, GPT-5.4-Cyber, Gemini Robotics-ER 1.6, UC Berkeley BenchJack, vLLM v0.19.0)*
+*Last updated: April 20, 2026 (v6 — verified sources: Claude Opus 4.7, Claude Design, APEX-Agents-AA, Anthropic/White House reconciliation, OpenAI Spud production testing)*
 
 ---
 
@@ -252,15 +252,54 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Early customers:** Notion, Rakuten, Asana
 - **Production signal:** Removes weeks of infrastructure work; shifts bottleneck from "can Claude be an agent" to "how do we run production agents at scale"
 
-### Anthropic Full-Stack AI Studio Positioning (NEW — April 14-16, 2026)
-- **Signal:** Anthropic reportedly preparing to launch Claude Opus 4.7 + AI Design Tool simultaneously (The Information, April 14-15; Vertex AI console leak April 16)
-- **Design Tool:** Natural-language-to-product for websites, landing pages, presentations. Competes with Gamma, Figma, Webflow
-- **Strategic interpretation:** Anthropic repositioning from "model API provider" to "full-stack AI studio." First move into a vertical product surface (creative/design) where it has no prior presence
-- **Market reaction:** Figma -6%, Adobe -2.7%, Wix -4.7%, GoDaddy -3% on April 14-15 — competitive threat perceived as real by public markets
-- **Claude Code source leak context (March 31):** 512K lines published to npm accidentally; exposed upcoming model IDs including Opus 4.7, Sonnet 4.8
-- **Opus 4.7:** Incremental Opus update (4.5 → Nov 2025, 4.6 → Feb 2026, 4.7 → April 2026); improvements expected in multi-step reasoning, coding, multi-agent orchestration
-- **Status as of April 16:** Not officially launched. The Information report + Vertex AI leak = high confidence imminent. Do not update model routing decisions until official release + benchmarks
-- **Broader pattern:** Frontier lab business model bifurcation — labs moving into vertical product surfaces (design, research, code) vs. remaining pure API. This is the same pattern as OpenAI launching ChatGPT features that compete with plugin-dependent partners
+### Anthropic Full-Stack AI Studio — CONFIRMED (Updated April 20, 2026)
+- **Status:** Both products confirmed shipped. Claude Opus 4.7 launched April 16; Claude Design launched April 17.
+- **Prior signal (April 14-16):** The Information + Vertex AI console leak. Both confirmed accurate within 48 hours.
+
+### Claude Opus 4.7 (Launched April 16, 2026)
+- **Release:** Generally available on claude.ai, API, AWS Bedrock, Google Vertex AI, Microsoft Azure AI Foundry
+- **Pricing:** Same as 4.6 — $5/MTok input, $25/MTok output
+- **Key benchmark results:**
+  - SWE-bench Verified: 87.6% (+6.8 from 4.6 at 80.8%); GPT-5.4 Pro retains narrow lead at 88.3%
+  - MCP-Atlas: leads GPT-5.4 by 9.2 points — largest gap on any frontier benchmark, most relevant for production agents
+  - GPQA Diamond: 94.2%
+  - XBOW visual-acuity: 54.5% → 98.5% (dramatic vision improvement)
+  - BrowseComp: regression 83.7% → 79.3% — real tradeoff, not noise
+  - Vision: 1.15MP → 3.75MP input capacity (2,576px max long edge)
+- **Tokenizer change:** 1.0–1.35× more tokens consumed per request — verify cost model before migration
+- **New inference primitives:**
+  1. **xhigh effort level:** Between `high` and `max`; at 100K thinking tokens scores 71% on internal agentic benchmark — better than Opus 4.6 max at 200K tokens. Claude Code defaults to xhigh on all plans.
+  2. **Task budgets (public beta):** Pass `task-budgets-2026-03-13` beta header + token ceiling. Model observes countdown, adapts strategy, produces graceful partial completion rather than hard cutoff. First inference-time token control as a first-class model-observable API primitive.
+  3. **/ultrareview (Claude Code):** Skeptical senior engineer code review. 3 free uses/billing cycle on Pro/Max. High compute cost implies non-trivial reasoning depth.
+- **Architectural context:** xhigh + task budgets together define a new agent design pattern: inference-time token budget as a contract between caller and model, not just a hard truncation mechanism
+
+### Claude Design (Launched April 17, 2026)
+- **Product:** Generates prototypes, slides, one-pagers, design systems from natural language. Powered by Claude Opus 4.7.
+- **Availability:** Research preview for Pro, Max, Team, Enterprise subscribers
+- **Key architectural moves:**
+  1. **Codebase-to-design-system extraction:** During onboarding, reads team's codebase and design files → extracts color palette, typography, component patterns → applies automatically to all future projects. Mechanism: Opus 4.7's 3.75MP vision over design artifacts + code parsing.
+  2. **Org-scoped design context persistence:** Design system maintained across projects (application layer on top of Claude API, not native to API)
+  3. **Claude Code handoff bundle:** Design → package containing design tokens, component specs, layout definitions, interaction notes → Claude Code generates production code. Closes design→prototype→code loop inside Anthropic ecosystem. Eliminates Figma DevMode / Zeplin / Storybook as external handoff tools.
+- **Export formats:** ZIP, PDF, PPTX, standalone HTML, Canva (fully editable), Claude Code handoff bundle
+- **Competitive position:** Canva received a *partnership* (export target); Figma, Adobe, Wix, GoDaddy took stock hits (-2.7% to -6%)
+- **Strategic implication:** The handoff bundle is the most significant feature — not because it's a design tool, but because it automates the design→engineering translation that previously required external tooling. Closes a workflow gap inside Anthropic's product ecosystem.
+
+### Anthropic / US Government Saga (Updated April 20, 2026)
+- **April 17 event:** Dario Amodei met White House Chief of Staff Susie Wiles + Treasury Secretary Scott Bessent + National Cyber Director Sean Cairncross. Described as "productive." Topics: Mythos cybersecurity capabilities, America's AI lead, AI safety.
+- **Significance:** First senior White House engagement after government-wide ban (Feb 27) and DOD supply chain risk designation (March). Potential thaw — other government departments exploring Mythos Preview engagement. Pentagon legal fight continues in parallel (courts issued conflicting rulings: district court preliminary injunction granted March 24; appeals court denied temporary block April 8).
+- **Policy implication:** The US government is separating the DOD contract dispute (specific to autonomous weapons / mass surveillance restrictions) from broader government AI engagement. Anthropic's safety-first deployment stance is negotiable, not disqualifying at the executive branch level.
+- **Enterprise risk recalibration:** The Anthropic "supply chain risk" designation was DOD-specific, not US government policy on AI safety. Revise risk assessments of Anthropic API dependency accordingly.
+- **OpenAI parallel:** OpenAI signed the $200M DOD contract Anthropic declined. Both labs now in direct competition for US government AI spend, with fundamentally different stances on autonomous weapons / mass surveillance use cases.
+
+### OpenAI Spud (Confirmed in Live Production Testing, April 19, 2026)
+- **Codename:** "Spud" — believed to be GPT-5.5 or GPT-6 (not yet officially named)
+- **Pre-training:** Completed March 24, 2026 at Stargate Abilene, TX
+- **April 19 signal:** API monitors detected Spud in production-scale live testing — not internal dev environment. Community detection consistent with final pre-launch load testing.
+- **Polymarket:** 81% by April 23 (moved from 79% after April 19 detection)
+- **Greg Brockman (Big Technology podcast):** "big model feel — not an incremental improvement, a significant change in the way we think about model development"
+- **Sam Altman (March 24):** "very strong model that could really accelerate the economy"
+- **Still unconfirmed:** Name, architecture, parameter count, context window, benchmark results, pricing, launch date
+- **Build implication:** Do not update model routing decisions until official launch + independent benchmarks. If Brockman's "big model feel" description is accurate, this may be a step-change rather than incremental update — justify the wait.
 
 ### Claude Code Routines — Durable Agentic Execution (NEW — April 14, 2026)
 - **What it is:** Saved, schedulable AI automations that run on Anthropic's cloud infrastructure — not on the user's local machine
@@ -285,33 +324,31 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Agent Evaluation & Reliability
 
-### Benchmark Landscape (April 14, 2026 Update)
+### Benchmark Landscape (April 20, 2026 Update)
 
 | Benchmark | What it tests | Human | Best AI | Notes |
 |-----------|--------------|-------|---------|-------|
-| SWE-bench Verified | Code bug-fixing | — | GPT-5.4 Pro 88.3% | Hours-scale tasks |
-| SWE-bench Pro | Hardest code tasks | — | Mythos 77.8% (restricted); **MiniMax M2.7 56.22% (NEW #1 open)** | Week-scale implied by MirrorCode |
-| Terminal Bench 2 | Terminal-native agent tasks | — | **MiniMax M2.7 57.0%** | New entry |
-| SWE Multilingual | Coding across languages | — | **MiniMax M2.7 76.5** | New entry |
+| SWE-bench Verified | Code bug-fixing | — | GPT-5.4 Pro 88.3%; **Claude Opus 4.7: 87.6%** | Opus 4.7 now #2; was 80.8% (Opus 4.6) |
+| SWE-bench Pro | Hardest code tasks | — | Mythos 77.8% (restricted); MiniMax M2.7 56.22% (open #1) | Week-scale implied by MirrorCode |
+| Terminal Bench 2 | Terminal-native agent tasks | — | MiniMax M2.7 57.0% | |
+| SWE Multilingual | Coding across languages | — | MiniMax M2.7 76.5 | |
 | MirrorCode | Weeks-scale autonomous coding | 100% | Opus 4.6 (weeks-scale) | Spec quality = binding constraint |
-| ARC-AGI-3 | Interactive adaptation / rule-learning | 100% | Gemini 3.1 Pro 0.37% | Symbolica Agentica 36.08% (program synthesis) |
-| HLE | Expert-level multi-domain questions | — | Claude Opus 4.6 / Gemini 3.1 Pro >50% | Was 8.8% (o1, early 2025); 40+ point gain in 12 months |
-| CyberGym | Autonomous vulnerability reproduction | — | Mythos 83.1% | Security-specific capability measurement |
-| MCP-Atlas | Multi-tool agentic workflows | — | GLM-5.1 71.8 | Real-world agent proxy |
+| ARC-AGI-3 | Interactive adaptation / rule-learning | 100% | Gemini 3.1 Pro 0.37%; Symbolica Agentica 36.08% | Program synthesis architecture dominant |
+| HLE | Expert-level multi-domain questions | — | Claude Opus 4.6 / Gemini 3.1 Pro >50% | Was 8.8% (o1, early 2025) |
+| CyberGym | Autonomous vulnerability reproduction | — | Mythos 83.1% | Security-specific |
+| MCP-Atlas | Multi-tool agentic workflows | — | **Claude Opus 4.7 leads GPT-5.4 by 9.2 points** (UPDATED) | Most important agentic proxy benchmark |
+| GPQA Diamond | Expert science reasoning | — | **Claude Opus 4.7: 94.2%** | |
+| XBOW visual-acuity | Visual precision | — | **Claude Opus 4.7: 98.5%** (was 54.5% on Opus 4.6) | |
+| **APEX-Agents-AA** | **Long-horizon professional tasks** (banking, consulting, law) | — | **Gemini 3 Flash (Thinking=High): 24.0%** | **NEW — 75%+ failure at frontier on professional work** |
 
-### Current Benchmarks (April 14, 2026 Update)
-- **SWE-bench Verified** (500 tasks): GPT-5.4 Pro leads at 88.3%, Claude Opus 4.6 at 79.3%
-- **SWE-bench Pro** (hardest tasks — UPDATED April 14):
-  - Claude Mythos Preview: 77.8% (restricted access only)
-  - **MiniMax M2.7: 56.22% (NEW #1 open-weight / open-access)** — matches GPT-5.3-Codex (restricted)
-  - GLM-5.1: 58.4% (note: pending recalibration — M2.7 may surpass this; conflicting reports)
-  - GPT-5.4: 57.7%
-  - Claude Opus 4.6: 57.3%
-  - ~~Previous top at 23.3% — this was the April 6 state; SWE-bench Pro has been updated~~
-- **HLE (Humanity's Last Exam):** 8.8% → 50%+ in 12 months — fastest capability jump on any major benchmark per Stanford AI Index 2026
-- **SWE-bench Live:** monthly updates prevent contamination
-- **CyberGym:** Mythos 83.1% / Opus 4.6 66.6% — new security-specific benchmark now tracking capability gaps
-- **MCP-Atlas:** GLM-5.1 71.8 — multi-tool agentic workflow benchmark, now relevant as real-world agent proxy
+### Current Benchmarks (April 20, 2026 Update)
+- **SWE-bench Verified:** GPT-5.4 Pro 88.3%; **Claude Opus 4.7 87.6% (UPDATED — was 80.8%); Claude Opus 4.6 79.3%**
+- **SWE-bench Pro:** Mythos 77.8% (restricted); MiniMax M2.7 56.22% (open #1); GLM-5.1 58.4%; GPT-5.4 57.7%; Claude Opus 4.7 TBD
+- **MCP-Atlas:** Claude Opus 4.7 leads GPT-5.4 by 9.2 points — the largest inter-model gap on any frontier benchmark. Most important agentic workflow proxy.
+- **GPQA Diamond:** Claude Opus 4.7 94.2% (new #1 for general access)
+- **APEX-Agents-AA (NEW April 2026):** 24.0% best (Gemini 3 Flash Thinking); GPT-5.2 Thinking, Opus 4.5 Thinking, Gemini 3 Pro Thinking all below 24%. All frontier models fail >75% of professional workplace tasks. This is the most important new evaluation signal for builders targeting professional knowledge work.
+- **BrowseComp regression:** Opus 4.7 79.3% (was 83.7% on 4.6) — web research quality declined on the model that improved elsewhere. Real tradeoff, not noise.
+- **HLE:** 8.8% → 50%+ in 12 months — fastest capability jump on any major benchmark per Stanford AI Index 2026
 
 ### CRITICAL: Benchmark Integrity Collapse (UC Berkeley BenchJack, April 12, 2026)
 - **Finding:** UC Berkeley (Dawn Song, Alvin Cheung) built **BenchJack** — automated exploit agent that achieves near-perfect benchmark scores without solving any tasks
@@ -342,6 +379,21 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Confidence calibration unsolved:** Models cannot distinguish correct from incorrect predictions better than random
 - **Current mitigation:** Reflection checkpoints + real-time autorater loops (small verifier model in loop)
 - **Design implication:** Self-correction is now a design requirement, not an optimization
+
+### APEX-Agents-AA: Professional Task Reliability Calibration (NEW — April 20, 2026)
+- **Benchmark:** Artificial Analysis implementation of APEX-Agents (Mercor, arXiv:2601.14242) — 452 tasks across investment banking, management consulting, corporate law
+- **Key finding:** All frontier models fail >75% of professional workplace tasks at the frontier. Best result: Gemini 3 Flash (Thinking=High) 24.0%.
+- **Why smaller thinking model wins:** Thinking-optimized models may produce more structured intermediate reasoning that better anchors later steps in multi-step tasks. Hypothesis — needs more data to confirm.
+- **Root cause of failure (3 identified):**
+  1. Cross-step context degradation: earlier context fades as later steps fill context window
+  2. Single-pass task execution: no iterative draft-review-revise cycle
+  3. Ambiguous task decomposition: mechanical enumeration rather than priority-weighted execution
+- **Known interventions that address root causes:**
+  - File-as-Bus (AiScientist) — addresses #1 (context degradation via durable artifacts)
+  - Task budgets (Opus 4.7) — addresses #3 (budget-aware prioritization)
+  - Verifier loop architecture — addresses #2 (draft-review-revise)
+- **Evaluation implication:** APEX-Agents-AA is now the ground truth benchmark for professional knowledge work agents. Open dataset at huggingface.co/datasets/mercor/apex-agents. Run any professional-task agent against the relevant domain subset before claiming production readiness.
+- **Connection to prior reliability findings:** The 90% legacy agent failure rate (Harvard/Fortune) was architecture-based; APEX-Agents-AA now quantifies the capability gap on professional task quality even for frontier architectures — these are separate failure modes stacked.
 
 ---
 
@@ -509,11 +561,11 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 
 ## Open-Source Landscape
 
-### Upcoming Models (April 14, 2026 Update)
+### Upcoming Models (April 20, 2026 Update)
 
 | Model | Lab | Expected | Key Specs | Status |
 |-------|-----|----------|-----------|--------|
-| GPT-5.5 "Spud" | OpenAI | April 14–May 5, 2026 | Unknown; described as "big model feel," 2 years research | No announcement as of April 14; Polymarket 78% by April 30 |
+| GPT-5.5/6 "Spud" | OpenAI | April 21–23 (81% Polymarket) | Unknown; "big model feel," "significant change in model development" — Brockman | **Detected in production-scale API testing April 19. Most imminent frontier release.** |
 | DeepSeek V4 | DeepSeek | Late April 2026 | 1T params MoE, 37B active, 1M context, Engram memory, $0.30/MTok, Apache 2.0 | V4-Lite on API nodes; full model expected late April |
 | Tencent Hunyuan 3.0 | Tencent | TBD April | ~30B params, long-context focus, agent task evaluation (Yao Shunyu) | Internal testing as of April 14 |
 
@@ -862,8 +914,15 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 16]: Autonomous research agents demonstrated at scale — arXiv:2604.12198: 42% of 111 computational physics papers received substantive concerns; 97.7% of concerns required code execution to surface; agent produced publishable Comment unsupervised. Key update: execution (not language understanding) is the primary value driver for AI-assisted scientific review
 - [April 16]: Anthropic full-stack product expansion — The Information report + Vertex AI leak confirm Claude Opus 4.7 + AI design tool (websites, landing pages, presentations) imminent. Market reaction (Figma -6%, Adobe -2.7%) confirms competitive threat perceived as real. Frontier model labs are moving from API providers to vertical product studios
 - [April 16]: GPT-6 still not launched; DeepSeek V4 still expected late April; both remain major pending developments
+- [April 20]: Claude Opus 4.7 confirmed (launched April 16) — real benchmarks now: SWE-bench Verified 87.6% (+6.8 from 4.6); MCP-Atlas leads GPT-5.4 by 9.2 points (largest inter-model gap on any frontier benchmark); GPQA Diamond 94.2%; XBOW visual 54.5%→98.5%; BrowseComp regression 83.7%→79.3% (real tradeoff); vision 3.75MP (3× prior). Key new primitives: task budgets (inference-time token contract as first-class API feature), xhigh effort level (better than max at 2× fewer tokens)
+- [April 20]: Claude Design confirmed (launched April 17) — codebase-to-design-system extraction pipeline; org-scoped context persistence; Claude Code handoff bundle closes design→prototype→code loop inside Anthropic ecosystem; Canva becomes partner (export target), not competitor; Figma loses the handoff function to an Anthropic native product
+- [April 20]: Task budgets as inference primitive — first time a frontier model has an API-level token budget it can observe and adapt to during execution. Not soft guidance, not hard truncation. Model negotiates against the budget during the run. This is a new agent design pattern: budget-aware execution replaces unbounded invocation.
+- [April 20]: APEX-Agents-AA published — 452 professional services tasks (investment banking, consulting, law); all frontier models fail >75%; best performer Gemini 3 Flash (Thinking=High) 24.0%; confirms a large architecture gap between developer-task and professional-task agent reliability. File-as-Bus + task budgets + verifier loops are the three known interventions that address the root causes.
+- [April 20]: Anthropic/White House meeting (April 17) — Dario Amodei + Susie Wiles + Bessent + Cairncross; "productive"; separates DOD legal fight from broader US government AI engagement. Pentagon blacklisting risk is contract-specific, not a US government policy position on AI safety. Revise enterprise Anthropic risk assessments accordingly.
+- [April 20]: OpenAI Spud in production-scale API testing (April 19) — most imminent frontier model release; Polymarket 81% by April 23; Brockman: "big model feel, not incremental." Hold model routing decisions until post-launch benchmarks.
+- [April 20]: Professional-task agent reliability gap established quantitatively — prior reliability data (90% legacy agent failure) was architecture-based; APEX-Agents-AA reveals 76%+ failure even at the frontier on professional knowledge work. Two separate failure modes now documented: architectural depth (legacy agents) and orchestration quality (frontier agents).
 
-*Last updated: April 16, 2026*
+*Last updated: April 20, 2026*
 
 ---
 
