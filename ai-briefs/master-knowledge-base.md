@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 20, 2026 (v6 — verified sources: Claude Opus 4.7, Claude Design, APEX-Agents-AA, Anthropic/White House reconciliation, OpenAI Spud production testing)*
+*Last updated: April 21, 2026 (v7 — verified sources: Codex "for everything" computer use, GPT-Rosalind domain-specific model, NVIDIA Ising quantum AI, ChatGPT April 20 outage, interface paradigm decision framework)*
 
 ---
 
@@ -127,6 +127,15 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
   - 2026+: Tiered access — general API + restricted-access tiers for high-capability models
 - **Link to safety:** Confidence calibration (can't self-assess hacking risk) + autonomous execution = dual-use by construction at frontier scale
 
+### Domain-Specific Model Series as Product Category (NEW — April 2026)
+- **GPT-Rosalind (April 16-17, 2026):** OpenAI's first domain-specific model series. Built for life sciences: genomics, protein engineering, drug discovery, translational medicine. Named after Rosalind Franklin.
+- **Architecture (partial):** Purpose-built fine-tune on top of newest OpenAI internal models. Trained to reason about molecules, proteins, genes, biological pathways as first-class objects (not arbitrary text). Works alongside AlphaFold/ESM for structure prediction rather than replacing them. Designed for multi-step scientific workflows: evidence synthesis, hypothesis generation, experimental planning.
+- **Access model:** Trusted-access program for qualified US enterprise customers. Partners: Amgen, Moderna, Allen Institute, Thermo Fisher Scientific. NOT public API.
+- **Companion product:** Free Codex research plugin connecting models to 50+ scientific databases (human genetics, functional genomics, protein structure, biochemistry, clinical evidence, public study discovery).
+- **Pattern established:** OpenAI now has three model tiers: (1) general public (GPT-5.4, o-series), (2) trusted-access professional verticals (Rosalind, GPT-5.4-Cyber), (3) research preview frontier (Spud). The professional vertical tier is now a repeatable product category. Next expected verticals: legal, financial, clinical.
+- **Key strategic signal:** Domain-specific model + identity-gated access + 50+ tool integrations = professional vertical AI product. Replicate this pattern when evaluating competitive AI positioning in any professional domain.
+- **Comparison to Anthropic:** Anthropic's Mythos Preview (cybersecurity) also capability-gated. Both labs converging on "trusted-access professional model" as the deployment template for specialized frontier capability.
+
 ### Meta's Open-Source Retreat (NEW — April 9, 2026)
 - **Muse Spark (April 8, 2026):** First model from Meta Superintelligence Labs (MSL), led by Alexandr Wang — CLOSED SOURCE
 - **This contradicts the prior assumption** that Meta would continue publishing all competitive models as Llama open weights. Muse Spark breaks that pattern.
@@ -179,6 +188,27 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Why `highlights` matters:** Standard TUI programs show selected items via inverse-video ANSI codes. Parsing this in plain text is brittle; the `highlights` field normalizes it into a structured field agents can consume
 - **Scope:** macOS/Linux only (requires Unix PTY). Works for any interactive terminal program without code changes to the target program
 - **Relation to MCP:** Could be wrapped as an MCP server for tool-calling agents — currently a standalone CLI tool
+
+### Computer Use — Interface Paradigm (NEW — April 16-17, 2026)
+- **Codex "for everything" (April 16-17, 2026):** OpenAI repositioned Codex from coding assistant to full developer workstation with four new capabilities: (1) **Computer Use** — cursor control + screen reading on macOS/Windows; (2) **Persistent Memory** — server-side key-value storage of preferences/corrections across sessions; (3) **In-App Web Browser** — web task execution without leaving Codex; (4) **Image generation** — visual asset production alongside code. Multiple parallel agents on same machine without interference.
+- **Architecture:** Vision model reads screen state → planner generates click/keystroke actions → screen re-captured for verification loop. Supplemented by OS accessibility APIs for structured UI element data (faster and more reliable than raw pixel parsing).
+- **Competitive status:** Both Claude (Claude Computer Use, 2025) and Codex (April 2026) now offer computer use. The coding agent market has reached surface-level capability parity on computer use, memory, and web workflows.
+- **Key gap remaining:** Claude Code Routines (server-side durable execution, saga/event-sourcing pattern) has no Codex equivalent as of April 2026. Codex remains session-local; Claude Code is cloud-durable.
+
+### Interface Paradigm Decision Framework (NEW — April 2026)
+Three agent interface paradigms ranked by reliability and setup cost:
+
+| Paradigm | Reliability | Speed | Setup cost | Use when |
+|---|---|---|---|---|
+| Tool calling (structured schema) | Highest | Fastest | Medium (need API) | Target app has documented API |
+| MCP | High | Fast | Low (if server exists) | MCP server available; or worth building for high-volume |
+| Computer use | Lowest | Slowest | Zero | No API/MCP exists; low-frequency one-off tasks |
+
+**Decision rule:** Computer use is an integration bootstrap tool, not a production automation pattern. Use it to prototype new app integrations or handle true one-offs. When volume crosses ~100 runs/day, build the MCP server.
+
+**Emerging pattern (not yet productized):** Computer use → MCP compiler. Observe reliable computer use sessions, extract action sequences, export as MCP server. Collapses integration time from weeks to hours. No tool does this automatically yet.
+
+**Codex computer use note:** macOS/Windows only as of April 2026. Linux developers excluded.
 
 ---
 
@@ -741,6 +771,19 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ---
 
+## AI for Quantum Hardware (NEW — April 14-15, 2026)
+
+### NVIDIA Ising — AI Models for Quantum Processor Engineering
+- **Models:** Two-model open family: Ising Calibration (35B VLM) + Ising Decoding (0.9M and 1.8M parameter 3D CNN variants). Released April 14-15, 2026. Available: GitHub, Hugging Face, build.nvidia.com. Full open weights + training frameworks + data + benchmarks + fine-tuning recipes.
+- **Ising Calibration (35B VLM):** Trained on multi-modality qubit measurement data. Automates quantum processor calibration — interprets qubit measurement signals, identifies calibration drift, generates corrective parameters. Reduces calibration from days → hours. Supports agentic calibration automation (model takes actions, not just recommendations).
+- **Ising Decoding (3D CNN):** Pre-decoding for surface-code quantum error correction (the dominant error correction approach for fault-tolerant quantum computing). 2.5× faster, 3× more accurate than traditional decoders. Real-time capable.
+- **Named after:** Ernst Ising — physicist known for the Ising model in statistical mechanics (spin systems, phase transitions).
+- **Adoptees:** Academia Sinica, Fermilab, Harvard, Infleqtion, IQM Quantum Computers, Lawrence Berkeley National Lab, UK National Physical Laboratory.
+- **Builder relevance (long horizon):** If AI-assisted quantum calibration compresses fault-tolerant quantum timelines, the compute substrate for inference changes. The 35B VLM trained on qubit measurement data is also an existence proof for domain-specific scientific instrument data as foundation model training signal. More near-term: the "agentic calibration" pattern (VLM + autonomous corrective action) applies to any hardware system with measurable drift that requires iterative tuning.
+- **Relationship to Gemini Robotics-ER 1.6:** Both demonstrate specialized VLMs for hardware-adjacent tasks (instrument reading, quantum calibration) performing better than narrow classical approaches. Pattern: general VLM + domain fine-tune + structured output > specialist narrow model for scientific instrumentation.
+
+---
+
 ## AI Compute: Geopolitics & Hardware Stacks (NEW — April 13, 2026)
 
 ### CUDA/NVIDIA Stack vs CANN/Huawei Stack
@@ -921,8 +964,14 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 20]: Anthropic/White House meeting (April 17) — Dario Amodei + Susie Wiles + Bessent + Cairncross; "productive"; separates DOD legal fight from broader US government AI engagement. Pentagon blacklisting risk is contract-specific, not a US government policy position on AI safety. Revise enterprise Anthropic risk assessments accordingly.
 - [April 20]: OpenAI Spud in production-scale API testing (April 19) — most imminent frontier model release; Polymarket 81% by April 23; Brockman: "big model feel, not incremental." Hold model routing decisions until post-launch benchmarks.
 - [April 20]: Professional-task agent reliability gap established quantitatively — prior reliability data (90% legacy agent failure) was architecture-based; APEX-Agents-AA reveals 76%+ failure even at the frontier on professional knowledge work. Two separate failure modes now documented: architectural depth (legacy agents) and orchestration quality (frontier agents).
+- [April 21 — coverage gap Apr 16-17]: GPT-Rosalind — OpenAI's first domain-specific model series; trusted-access only; life sciences (genomics, protein engineering, drug discovery); establishes domain-specific vertical model as repeatable OpenAI product category alongside general public models and trusted-access professional models. Next verticals: legal, financial, clinical.
+- [April 21 — coverage gap Apr 16-17]: Codex "for everything" — Codex repositioned from coding assistant to ambient desktop agent; computer use (cursor control, screen reading), persistent memory (server-side KV), in-app browser, image generation; macOS/Windows only. Surface-level capability parity with Claude Code on these features; Claude Code Routines (server-side durable execution) still has no Codex equivalent.
+- [April 21 — coverage gap Apr 14-15]: NVIDIA Ising — first open AI models for quantum hardware engineering; Ising Calibration (35B VLM, days→hours calibration) + Ising Decoding (3D CNN, 2.5× faster / 3× more accurate error correction); open weights + training data + recipes on HuggingFace/GitHub. Establishes AI-for-hardware-calibration as a real product category distinct from AI-for-inference.
+- [April 21]: Interface paradigm decision framework formalized — three agent interface tiers (computer use, MCP, tool calling) with clear reliability/speed/cost tradeoffs; computer use = integration bootstrap (last resort), not default production pattern; emerging unproductized pattern: computer use → MCP compiler (automate the handoff from observed UI sessions to structured tool schemas).
+- [April 21]: ChatGPT April 20 outage — 90-minute partial outage across conversations, login, voice, image gen, and Codex simultaneously; shared infrastructure dependency confirmed; Codex inherits ChatGPT availability profile, not separate SLA. Build circuit-breaker + fallback logic for any production workflow with OpenAI dependency.
+- [April 21]: OpenAI Spud still pre-launch as of April 21; Polymarket ~75% for April 23. "Boba by stealth" leads coding Arena leaderboard (score 1116, above Opus 4.7 at 1092) with no public model card — weak signal pending primary-source evidence.
 
-*Last updated: April 20, 2026*
+*Last updated: April 21, 2026*
 
 ---
 
