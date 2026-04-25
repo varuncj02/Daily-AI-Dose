@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 21, 2026 (v7 — verified sources: Codex "for everything" computer use, GPT-Rosalind domain-specific model, NVIDIA Ising quantum AI, ChatGPT April 20 outage, interface paradigm decision framework)*
+*Last updated: April 25, 2026 (v9 — DeepSeek V4 Pro/Flash: CSA+HCA hybrid attention cuts KV cache 90% at 1M tokens, MIT license; GPT-5.5 API: natively omnimodal, 1M context, GB200 hardware co-design; Harness engineering formalized as research field: HARBOR (Bayesian optimization), meta-evolution loop; Tencent Hy3-preview 295B MoE open weights)*
 
 ---
 
@@ -112,6 +112,16 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Trade-off:** Cost of 10M context vs. cost of retrieval infrastructure — economic crossover depends on query frequency
 - Hybrid: RAG for web-scale + long-context for focused corpus remains best practice
 
+### Autonomous Research Agents — Deep Research Max (NEW — April 22, 2026)
+- **What it is:** Google's managed API service for long-horizon research. Two tiers: Deep Research (low-latency, interactive) and Deep Research Max (extended computation, comprehensive analysis). Both run on Gemini 3.1 Pro.
+- **Key capability: web + private data fusion.** MCP support means a single research query fans out across: open web, file uploads, connected file stores (Google Drive), and MCP-connected private data sources (FactSet, S&P Global, PitchBook, internal databases). Result synthesizes across all sources without moving data out of the organization's environment.
+- **Benchmarks (April 22, 2026):** DeepSearchQA: 93.3% (up from 66.1% in Dec 2025). HLE: 54.6% (up from 46.4%). DeepSearchQA 93.3% is the highest published score for any research agent on that benchmark — narrowly above Kimi K2.6's 92.5% F1.
+- **Mechanism:** Multi-round retrieval-synthesis loop — query → decompose into sub-queries → fan out retrievals (web + MCP in parallel) → deduplicate + rank → synthesize draft → identify gaps → follow-up retrievals → finalize. Deep Research Max runs more rounds than standard for deeper coverage.
+- **Native visualization:** Charts and infographics generated inline as HTML — no separate visualization step.
+- **Availability:** Public preview via paid Gemini API tiers.
+- **Architecture position:** Competes directly with custom Agentic RAG pipelines for research-intensive workflows. Custom RAG remains superior for: sub-100ms retrieval, tight chunking/embedding control, non-standard data formats, cost optimization below Gemini API pricing. Deep Research Max wins for: ad-hoc and scheduled research where latency is not a constraint and web + private data fusion is needed without custom orchestration.
+- **Pattern this enables:** "Hybrid research" — any workflow requiring both current public information and private enterprise context in one answer can now be handled by a single managed API call rather than a two-stage custom pipeline.
+
 ---
 
 ## Capability-Gating & Open-Source Strategy
@@ -178,9 +188,26 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Architecture implication:** The harness is now a named layer in the agent stack. Definition: harness owns loop, routing, handoffs, approvals, tracing, recovery, run state. If you are designing agent systems, this is the vocabulary and division of responsibilities to use.
 - **Competitive implication:** Teams whose value prop was "we built a better harness on top of OpenAI" lost moat on April 15, 2026
 
-### Google A2A Protocol
-- Agent-to-agent communication standard
-- Less ecosystem traction than MCP as of April 2026; watch for convergence
+### Google A2A Protocol — April 23, 2026 (v1.2, Google Cloud Next)
+- **Status:** Now v1.2 under Linux Foundation Agentic AI Foundation governance (not Google-controlled). 150 organizations in production.
+- **v1.2 key addition — Signed Agent Cards:** Each Agent Card (machine-readable capability manifest: what the agent can do, what tools it has, what inputs it accepts) is now cryptographically signed by the issuing domain. A receiving agent verifies the signature before accepting capability claims. This makes decentralized agent discovery secure — a receiving agent or gateway can verify a card was actually issued by the claimed domain.
+- **Ecosystem adoption:** Native A2A v1.2 support now in Google ADK, LangGraph, CrewAI, LlamaIndex Agents, Semantic Kernel, and AutoGen. This is the inflection point where A2A transitions from "Google protocol worth evaluating" to "cross-framework standard to design to."
+- **Design implication:** When building multi-agent systems where agents can receive capability claims from other agents, design for signed-card verification from the start. The infrastructure exists; the pattern is now standard.
+
+### Agent Identity — SPIFFE-Based Cryptographic Identity for Agents (NEW — April 22, 2026)
+- **Source:** Google Cloud Next 2026 / Gemini Enterprise Agent Platform launch
+- **Problem it solves:** In multi-agent systems built on shared service accounts, there is no production mechanism to: (a) identify which specific agent made a tool call, (b) enforce per-agent tool authorization, (c) produce tamper-evident audit logs at the agent-action level.
+- **Mechanism:** Each deployed agent receives a SPIFFE SVID (SPIFFE Verifiable Identity Document) — a unique cryptographic identifier with an X.509 certificate (24-hour TTL). Access tokens are bound to the agent's certificate using cryptographic binding, preventing token theft/replay. Integrates with IAM, PAB (Principal Access Boundary), VPC Service Controls, and audit logging.
+- **Audit log distinction:** Logs both "agent acting as itself" (direct permissions) and "agent acting on behalf of user" (delegated permissions) — providing the chain-of-delegation record needed for enterprise compliance.
+- **Current availability:** Google Cloud Gemini Enterprise Agent Platform only (April 2026). AWS and Azure do not have equivalent managed agent identity.
+- **Short-term mitigation for non-GCP deployments:** Issue a signed JWT to each agent instance at spawn time (claims: agent_id, authorized_tools[], task_scope, exp). Verify JWT in all tool server handlers. Emit structured append-only audit logs per tool call.
+
+### Agent Gateway (NEW — April 22, 2026)
+- **Source:** Google Cloud Next 2026 / Gemini Enterprise Agent Platform
+- **What it is:** A managed air-traffic control layer that routes all agent-to-resource and agent-to-agent traffic, enforcing identity, authorization, and security policy at the infrastructure level rather than application code.
+- **Functions:** (1) Verify Agent Identity (SPIFFE certificate) on every call. (2) Enforce per-agent tool authorization via IAM. (3) Run Model Armor filtering for prompt injection on both incoming requests and outgoing tool calls. (4) Emit structured audit logs per interaction.
+- **Analogy:** A service mesh proxy (Istio/Envoy) specialized for AI agent interactions rather than microservice networking. Same pattern: mutual auth + policy + observability + circuit-breaking, but at the LLM call / tool invocation / agent handoff layer.
+- **Design implication:** Any multi-agent system without a gateway equivalent is operating without a security enforcement boundary between orchestrator and executor. The Agent Gateway pattern is the long-term standard; implement synthetic equivalents now on non-GCP infra.
 
 ### PTY-Based Terminal Interaction (NEW — April 9, 2026)
 - **tui-use (April 8–9, 2026):** Spawns any program in a PTY, runs headless xterm emulator, presents clean plain-text screen state + `highlights` field for TUI-selected items; sends keystrokes back through PTY
@@ -260,6 +287,19 @@ Three agent interface paradigms ranked by reliability and setup cost:
 ### Agent-First IDE Architecture
 - Cursor 3 (April 2026): parallel execution, Design Mode (UI-modifying agents), 5-hour RL checkpoint refresh
 - Shift: developers orchestrating agents rather than writing code
+- **SpaceX-Cursor strategic deal (April 21-22, 2026):** SpaceX (which merged with xAI) acquired option to buy Cursor for $60B, or pay $10B for joint coding/knowledge work AI development using xAI's Colossus supercomputer. Acquisition delayed until after SpaceX IPO (summer 2026). Signal: SpaceX/xAI entering the coding agent market with Cursor's distribution + Colossus training compute. Third major competitor to Claude Code and Codex if acquisition completes. Cursor currently uses Claude and GPT-5.4 as backend models — post-acquisition model routing may shift to Grok/xAI.
+
+### Agent Swarm Scaling — Kimi K2.6 (NEW — April 21, 2026)
+- **Source:** Moonshot AI, Kimi K2.6 release
+- **Architecture:** Orchestrator-worker topology where K2.6 in orchestrator mode decomposes a task, spawns up to 300 specialized worker agents with defined scope and tool access, and synthesizes compressed summaries from parallel returns. Workers operate independently, return summaries (not raw state), allowing the orchestrator to maintain plan coherence.
+- **Scale numbers:** 300 sub-agents, 4,000 coordinated steps (3× and 2.7× respectively vs K2.5's 100 sub-agents / 1,500 steps)
+- **Benchmarks:** HLE-Full with tools: 54.0 (leads frontier models — GPT-5.4: 52.1, Claude Opus 4.6: 53.0, Gemini 3.1 Pro: 51.4). SWE-bench Pro: 58.6% (narrowly leads GPT-5.4's 57.7%). DeepSearchQA F1: 92.5 vs GPT-5.4's 78.6.
+- **Base model:** 1T params MoE, 32B active per forward pass, 384 experts, top-8 routing + shared expert. Context: 256K. Open weights (Modified MIT) on Hugging Face.
+- **Critical mechanism:** Summary compression is the scaling enabler. Sub-agents return compressed summaries to prevent orchestrator context saturation. The summary contract (format, required fields, maximum length) is the critical engineering artifact that determines whether the swarm scales or degrades.
+- **Availability:** Kimi.com, Kimi API, Cloudflare Workers AI (serverless), Kimi Code CLI. Open weights on Hugging Face.
+- **Design implication:** The constraint on agent swarm size is now orchestration cost and summary quality, not model capability. For multi-agent design: (1) define summary contract explicitly in sub-agent system prompt, (2) specify required fields (result, confidence, failure cases, key data), (3) prohibit raw tool output and intermediate reasoning in returns.
+- **Connection to prior patterns:** Extends orchestrator-subagent program synthesis pattern (ARC-AGI-3, April 13) — summary compression is the same mechanism; K2.6 validates it at 300-agent production scale.
+- **Open-weight significance:** First open-weight model to lead closed-source frontier on HLE-Full with tools — confirms the open-weight ceiling for agentic capability fluctuates and is not fixed below Anthropic/OpenAI.
 
 ---
 
@@ -281,6 +321,26 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Pricing:** Standard Claude tokens + $0.08/session-hour runtime fee
 - **Early customers:** Notion, Rakuten, Asana
 - **Production signal:** Removes weeks of infrastructure work; shifts bottleneck from "can Claude be an agent" to "how do we run production agents at scale"
+
+### Gemini Enterprise Agent Platform — Google Cloud (NEW — April 22, 2026, Google Cloud Next 2026)
+- **What launched:** Google retired the Vertex AI brand, replacing it with the Gemini Enterprise Agent Platform — a unified control plane for building, deploying, governing, and optimizing agents.
+- **Core new components:** (1) Agent Identity (SPIFFE-based cryptographic identity per agent — see Tool Use section), (2) A2A v1.2 with signed Agent Cards, (3) Agent Gateway (air traffic control layer).
+- **ADK v1.0 stable:** Agent Development Kit stable across Python, Go, Java, TypeScript. Previously only Python had guaranteed API stability. A2A v1.2 support natively included.
+- **200+ models via Model Garden:** Includes Gemini 3.1 Pro, Gemini 3.1 Flash, Gemma 4, plus Anthropic's Claude (Opus, Sonnet, Haiku), and models from other labs. Google Cloud is now a multi-model marketplace, not a Gemini-only environment.
+- **Gemini 3.1 Flash-Lite GA:** Moved from preview to generally available. Positioned as Google's cheapest production model for high-volume developer workloads at <50% the cost of Gemini 3.1 Flash.
+- **Practical note:** The Vertex AI → Gemini Enterprise Agent Platform rename is product-level (console, branding, documentation). Existing Vertex AI APIs continue to work. No breaking changes to existing integrations.
+- **$750M partner fund:** Google committed to accelerate partner ecosystem for agentic AI development.
+- **Design implication:** If you are deploying on Google Cloud, Agent Identity + Agent Gateway + A2A v1.2 are now the recommended architecture for all multi-agent systems. If not on Google Cloud, the pattern is the target — implement synthetic equivalents (JWT identity, tool allowlists, audit logs) while waiting for AWS/Azure equivalents.
+
+### OpenAI Workspace Agents (NEW — April 22, 2026)
+- **What it is:** Codex-powered, always-on cloud agents that replace GPTs as OpenAI's enterprise agent product. Available in research preview for Business/Enterprise/Edu/Teachers plans. Free until May 6; credit-based pricing after.
+- **Architecture:** User creates agent config (prompt + tools + memory + triggers) → deploys to cloud. On trigger (Slack mention, schedule, or user-initiated ChatGPT session), a Codex cloud session spawns with the agent's attached tools, executes task, persists context to server-side memory (KV store), terminates. Next run reads prior context.
+- **Key difference from GPTs:** GPTs were stateless session-scoped tools — no persistence, no team sharing, no background execution. Workspace Agents are: (1) stateful across sessions (persistent memory), (2) team-shared (build once, deploy to whole org), (3) cloud-executed (runs when user is absent), (4) schedulable (cron-style triggers).
+- **Enterprise integrations:** Slack, Google Drive, Salesforce, Notion, Atlassian Rovo, Microsoft apps. Slack deployment: agent subscribes to channel events and threads work back.
+- **Admin governance:** Admins control who builds, runs, publishes agents, and what tools/apps each agent can access. Fine-grained permission model at the agent level.
+- **Architectural position vs. Google:** Gemini Enterprise Agent Platform provides the **infrastructure layer** (cryptographic identity, gateway, governance infrastructure). OpenAI Workspace Agents provides the **product layer** (Slack integration, scheduling, admin UI, team sharing). Both are necessary for enterprise agent deployment; neither company shipped both in the same week. The gap: Workspace Agents lacks cryptographic agent identity, signed capability cards, and gateway-level policy enforcement. Gemini Enterprise Agent Platform lacks the opinionated product experience.
+- **Pending question:** Credit-based pricing mechanics from May 6 — whether per-execution costs make Workspace Agents cheaper or more expensive than direct Codex API for high-volume workflows.
+- **Build implication:** For teams building enterprise workflows on OpenAI: Workspace Agents replaces GPTs and direct API chains as the recommended deployment unit. For teams comparing OpenAI vs. Google Cloud for agent infrastructure: OpenAI wins on product convenience; Google wins on security infrastructure depth.
 
 ### Anthropic Full-Stack AI Studio — CONFIRMED (Updated April 20, 2026)
 - **Status:** Both products confirmed shipped. Claude Opus 4.7 launched April 16; Claude Design launched April 17.
@@ -321,15 +381,16 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Enterprise risk recalibration:** The Anthropic "supply chain risk" designation was DOD-specific, not US government policy on AI safety. Revise risk assessments of Anthropic API dependency accordingly.
 - **OpenAI parallel:** OpenAI signed the $200M DOD contract Anthropic declined. Both labs now in direct competition for US government AI spend, with fundamentally different stances on autonomous weapons / mass surveillance use cases.
 
-### OpenAI Spud (Confirmed in Live Production Testing, April 19, 2026)
+### OpenAI Spud (Did Not Launch April 23 — Anticipated Week of April 27)
 - **Codename:** "Spud" — believed to be GPT-5.5 or GPT-6 (not yet officially named)
 - **Pre-training:** Completed March 24, 2026 at Stargate Abilene, TX
 - **April 19 signal:** API monitors detected Spud in production-scale live testing — not internal dev environment. Community detection consistent with final pre-launch load testing.
-- **Polymarket:** 81% by April 23 (moved from 79% after April 19 detection)
+- **Polymarket:** Closed April 23 at ~86% for April 23 release. Did not materialize. Anticipation shifted to week of April 27.
+- **Sam Altman:** "really excited for this week" + "This is not a screenshot" livestream tease (week of April 21). Codex terminal internal leak showed `gpt-spud` model name. None constitutes a launch.
 - **Greg Brockman (Big Technology podcast):** "big model feel — not an incremental improvement, a significant change in the way we think about model development"
 - **Sam Altman (March 24):** "very strong model that could really accelerate the economy"
 - **Still unconfirmed:** Name, architecture, parameter count, context window, benchmark results, pricing, launch date
-- **Build implication:** Do not update model routing decisions until official launch + independent benchmarks. If Brockman's "big model feel" description is accurate, this may be a step-change rather than incremental update — justify the wait.
+- **Build implication:** Do not update model routing decisions until official launch + independent benchmarks. April 23 non-launch does not change the "big model feel" signal — defer evaluation to actual numbers publication.
 
 ### Claude Code Routines — Durable Agentic Execution (NEW — April 14, 2026)
 - **What it is:** Saved, schedulable AI automations that run on Anthropic's cloud infrastructure — not on the user's local machine
@@ -371,13 +432,17 @@ Three agent interface paradigms ranked by reliability and setup cost:
 | XBOW visual-acuity | Visual precision | — | **Claude Opus 4.7: 98.5%** (was 54.5% on Opus 4.6) | |
 | **APEX-Agents-AA** | **Long-horizon professional tasks** (banking, consulting, law) | — | **Gemini 3 Flash (Thinking=High): 24.0%** | **NEW — 75%+ failure at frontier on professional work** |
 
-### Current Benchmarks (April 20, 2026 Update)
-- **SWE-bench Verified:** GPT-5.4 Pro 88.3%; **Claude Opus 4.7 87.6% (UPDATED — was 80.8%); Claude Opus 4.6 79.3%**
-- **SWE-bench Pro:** Mythos 77.8% (restricted); MiniMax M2.7 56.22% (open #1); GLM-5.1 58.4%; GPT-5.4 57.7%; Claude Opus 4.7 TBD
-- **MCP-Atlas:** Claude Opus 4.7 leads GPT-5.4 by 9.2 points — the largest inter-model gap on any frontier benchmark. Most important agentic workflow proxy.
-- **GPQA Diamond:** Claude Opus 4.7 94.2% (new #1 for general access)
-- **APEX-Agents-AA (NEW April 2026):** 24.0% best (Gemini 3 Flash Thinking); GPT-5.2 Thinking, Opus 4.5 Thinking, Gemini 3 Pro Thinking all below 24%. All frontier models fail >75% of professional workplace tasks. This is the most important new evaluation signal for builders targeting professional knowledge work.
-- **BrowseComp regression:** Opus 4.7 79.3% (was 83.7% on 4.6) — web research quality declined on the model that improved elsewhere. Real tradeoff, not noise.
+### Current Benchmarks (April 25, 2026 Update)
+- **SWE-bench Verified:** GPT-5.4 Pro 88.3%; **Claude Opus 4.7 87.6%; DeepSeek V4-Pro 80.6% (open weight)**
+- **SWE-bench Pro:** Mythos 77.8% (restricted); Claude Opus 4.7 64.3%; GPT-5.5 58.6%; Kimi K2.6 58.6%; GLM-5.1 58.4%; GPT-5.4 57.7%
+- **Terminal-Bench 2.0 (April 25 state):** GPT-5.5 **82.7%** (new SOTA standard model); Claude Opus 4.7 65.4%; DeepSeek V4-Pro 67.9% (open weight leads Opus 4.7); GPT-5.4 ~72% (est)
+- **LiveCodeBench:** DeepSeek V4-Pro **93.5%** (new open-weight #1); Claude Opus 4.7 88.8%
+- **MCP-Atlas:** Claude Opus 4.7 77.3% leads GPT-5.4 (68.1%) — largest inter-model gap on any frontier benchmark
+- **GPQA Diamond:** Claude Opus 4.7 94.2%; Gemini 3.1 Pro 94.3%; GPT-5.4 Pro 94.4%
+- **OSWorld-Verified (computer use):** GPT-5.5 78.7%; Claude Opus 4.7 78.0%; GPT-5.4 75.0%; Mythos Preview 79.6%
+- **GDPval (agentic knowledge work, 44 occupations):** GPT-5.5 **84.9%** (new #1)
+- **APEX-Agents-AA:** 24.0% best (Gemini 3 Flash Thinking). All frontier models fail >75% of professional tasks. Ground truth for professional agent reliability.
+- **HLE-Full with tools:** Kimi K2.6 54.0 (open-weight #1); Claude Opus 4.6 53.0; GPT-5.4 52.1; Gemini 3.1 Pro 51.4
 - **HLE:** 8.8% → 50%+ in 12 months — fastest capability jump on any major benchmark per Stanford AI Index 2026
 
 ### CRITICAL: Benchmark Integrity Collapse (UC Berkeley BenchJack, April 12, 2026)
@@ -409,6 +474,15 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Confidence calibration unsolved:** Models cannot distinguish correct from incorrect predictions better than random
 - **Current mitigation:** Reflection checkpoints + real-time autorater loops (small verifier model in loop)
 - **Design implication:** Self-correction is now a design requirement, not an optimization
+
+### Harness Engineering Research Cluster (NEW — April 22-24, 2026)
+- **The harness problem:** Agent harness (non-model infrastructure: prompt framing, context management, tool routing, error handling, delegation, safety checks, retry logic) accounts for 15-25% of observed agent performance on agentic coding benchmarks — independent of model weights. Production evidence: LangChain harness rebuild = +13.7 points on Terminal-Bench 2.0 with same model weights. Stanford IRIS + Meta-Harness (arXiv:2603.28052) = 76.4% Terminal-Bench 2.0 with Claude Opus 4.6.
+- **Three papers in 48 hours signal field formalization:**
+  1. **arXiv:2604.18071 "Architectural Design Decisions in AI Agent Harnesses" (April 24):** Empirical analysis of 70 real agent systems. Five recurring design dimensions: subagent architecture, context management, tool systems, safety mechanisms, orchestration. First taxonomy from real-world evidence rather than theoretical classification.
+  2. **HARBOR: Automated Harness Optimization (arXiv:2604.20938, April 22):** Formalizes harness design as a machine-learning problem. Parameterizes harness as flag space. Uses block-additive SAAS surrogate + multi-fidelity cost-aware acquisition + TuRBO trust regions (Bayesian optimization) to search automatically. Claim: automated search dominates manual stacking once flag space exceeds a handful of bits.
+  3. **"The Last Harness You'll Ever Build" (arXiv:2604.21003, April 22):** Two-level framework: (a) Harness Evolution Loop optimizes harness for one task; (b) Meta-Evolution Loop learns a harness-design protocol across diverse tasks — adapting to a new domain runs the protocol, not human engineering.
+- **Build implication:** Parameterize your harness as a versioned config object. Maintain a task suite. Run systematic flag variation. Treat harness as first-class engineering artifact with the same rigor as model selection.
+- **Competitive implication:** OpenAI Agents SDK (April 15) now provides first-class harness primitives. Research is automating harness design. The "custom harness as differentiator" window is narrowing — 12-18 month estimate before tooling commoditizes the common cases.
 
 ### APEX-Agents-AA: Professional Task Reliability Calibration (NEW — April 20, 2026)
 - **Benchmark:** Artificial Analysis implementation of APEX-Agents (Mercor, arXiv:2601.14242) — 452 tasks across investment banking, management consulting, corporate law
@@ -528,6 +602,34 @@ Three agent interface paradigms ranked by reliability and setup cost:
   - Impact: 2-4× higher batch sizes → 60-70% cost reduction for long-context serving
 - **Use case priority:** Long-context agents (100K+ tokens) see largest benefit
 
+### DeepSeek V4 CSA+HCA Hybrid Attention — Production Long-Context Architecture (NEW — April 24, 2026)
+- **What it is:** Hybrid compressed attention replacing standard full attention across all transformer layers in V4-Pro (1.6T total / 49B active) and V4-Flash (284B / 13B active). Both MIT license.
+- **Compressed Sparse Attention (CSA):**
+  1. Learned token-level compressor: every `m` tokens → 1 compressed KV entry (4× compression) via softmax-gated pooling with positional bias
+  2. FP4 "Lightning Indexer" scores queries against compressed blocks, selects top-k (sparse selection)
+  3. Query attends only to selected compressed blocks + local sliding window (128 tokens)
+- **Heavily Compressed Attention (HCA):**
+  1. 128 tokens → 1 compressed entry (128× compression)
+  2. Dense attention over all (now few) compressed entries + local sliding window
+- **Layer interleaving (V4-Pro 61 layers):** Layers 0-1 = HCA only; layers 2-60 = alternating CSA/HCA; final MTP block = sliding window only
+- **Storage precision:** Most KV entries FP8; RoPE dimensions BF16; Lightning Indexer FP4
+- **Key results at 1M tokens vs V3.2:** 90% KV cache reduction, 73% FLOP reduction
+- **Engram Memory (companion):** O(1) hash-based lookup for static factual patterns; reserves MoE expert capacity for reasoning. Optimal split: 20-25% static memory / 75-80% dynamic compute. Open-sourced at `deepseek-ai/Engram` on GitHub.
+- **Manifold-Constrained Hyper-Connections (mHC):** Prevents catastrophic signal amplification (reduces 3,000× to <2×) in >60-layer networks; enabled stable trillion-parameter training at 6.7% overhead
+- **Deployment realities:** V4-Flash (~158GB FP4+FP8) fits single H200 node. V4-Pro (~862GB) requires 8×H100 80GB (DGX class). vLLM is primary inference engine (first-class support). SGLang support maturing.
+- **Benchmarks (V4-Pro):** LiveCodeBench 93.5% (leads all), SWE-bench Verified 80.6%, Terminal-Bench 2.0 67.9% (leads Claude Opus 4.7's 65.4%), Codeforces 3206
+- **API pricing:** Flash $0.14/$0.28 per M in/out; Pro $1.74/$3.48 per M in/out
+- **RAG vs. long-context decision update:** Under 500K tokens, bounded corpus → V4-Flash at 1M context is now a legitimate alternative to chunked RAG. Compare: inference cost per query vs. (embedding pipeline + retrieval infra amortized). For web-scale and freshness-dominated: RAG still wins.
+- **Sources:** [API Docs](https://api-docs.deepseek.com/news/news260424) · [Engram GitHub](https://github.com/deepseek-ai/Engram) · [vLLM Blog](https://vllm.ai/blog/deepseek-v4)
+
+### Hardware Co-Design for Model Architecture (NEW — April 24, 2026)
+- **GPT-5.5 pattern (OpenAI, April 24, 2026):** First publicly stated case of co-designing model architecture decisions during pretraining with the inference hardware substrate in mind
+- **Hardware target:** NVIDIA GB200 and GB300 NVL72 Blackwell systems
+- **Result:** GPT-5.5 matches GPT-5.4 per-token latency despite being a more capable model — economics achieved through architectural co-design, not post-training optimization
+- **Implication:** This is the inference equivalent of TPU co-design that Google has applied to Gemini models, now applied to NVIDIA Blackwell. Frontier labs that control inference infrastructure will increasingly co-design the model for the hardware. Labs without hardware control cannot replicate this moat.
+- **Pattern distinction:** "Model optimized for hardware at inference time" (quantization, kernel tuning) ≠ "Model architecture designed for hardware at pretraining time." GPT-5.5 is the latter. The latter provides deeper efficiency gains and is harder to replicate retroactively.
+- **Expected timeline:** Hardware co-design will become standard at frontier scale within 12 months.
+
 ### Speculative Decoding (April 2026)
 - **Saguaro (ICLR 2026):** Pre-emptive verification outcome prediction → 2× over optimized SD, 5× over standard AR
 - **Mirror-SD:** 5.8× on 14-66B models
@@ -591,25 +693,33 @@ Three agent interface paradigms ranked by reliability and setup cost:
 
 ## Open-Source Landscape
 
-### Upcoming Models (April 20, 2026 Update)
+### Models Released Week of April 24, 2026
+- **DeepSeek V4-Pro (April 24):** 1.6T total / 49B active MoE, 33T training tokens, 1M context, CSA+HCA hybrid attention, Engram + mHC. MIT license. LiveCodeBench 93.5% (leads all models). Open weights on HuggingFace.
+- **DeepSeek V4-Flash (April 24):** 284B total / 13B active, 32T training tokens, 1M context, same CSA+HCA architecture. MIT license. Fits single H200 (~158GB). Best open-weight option for teams without GPU clusters.
+- **GPT-5.5 (API live April 24):** Natively omnimodal (text/image/audio/video in single model, not pipeline-stitched), 1M token context (400K in Codex), co-designed for GB200/GB300 NVL72 hardware. Terminal-Bench 2.0 82.7% (new standard-model SOTA), GDPval 84.9%, OSWorld-Verified 78.7%. Three variants: base / Thinking / Pro. $5/$30 per M in/out. First frontier model explicitly co-designed with inference hardware at pretraining time.
+- **Tencent Hy3-preview (April 23):** 295B total / 21B active MoE, 192 routed experts + 1 shared, 256K context, dense-MoE hybrid. Open weights on HuggingFace. Led by Yao Shunyu (former OpenAI). Third-party benchmarks pending.
+
+### Upcoming Models (April 23, 2026 Update)
 
 | Model | Lab | Expected | Key Specs | Status |
 |-------|-----|----------|-----------|--------|
-| GPT-5.5/6 "Spud" | OpenAI | April 21–23 (81% Polymarket) | Unknown; "big model feel," "significant change in model development" — Brockman | **Detected in production-scale API testing April 19. Most imminent frontier release.** |
-| DeepSeek V4 | DeepSeek | Late April 2026 | 1T params MoE, 37B active, 1M context, Engram memory, $0.30/MTok, Apache 2.0 | V4-Lite on API nodes; full model expected late April |
-| Tencent Hunyuan 3.0 | Tencent | TBD April | ~30B params, long-context focus, agent task evaluation (Yao Shunyu) | Internal testing as of April 14 |
+| GPT-5.5/6 "Spud" | OpenAI | April 23 (86% Polymarket) | Unknown; internal Codex leak, April 23 livestream; Altman "really excited for this week" | **Pre-release morning April 23. No benchmarks. Most imminent.** |
+| DeepSeek V4 | DeepSeek | Late April/Early May (delayed 3×) | 1T MoE, 37B active, 1M context, Engram memory, $0.30/MTok, Apache 2.0, Huawei Ascend 950PR | V4-Lite on API; slip into early May possible |
+| Tencent Hunyuan 3.0 | Tencent | TBD April/May | ~30B params, long-context focus | Internal testing |
 
-### Model Families (April 14, 2026 Update)
-| Family | Best Open Size | Context | License | Multimodal | SWE-bench Pro |
-|--------|---------------|---------|---------|-----------|--------------|
-| MiniMax M2.7 | 229B total / 10B active | 204K | Modified-MIT | No | 56.22% (#1 open-access, matches restricted GPT-5.3-Codex) |
-| Llama 4 | Maverick (17B/128E) | 10M | Commercial | Native | ~54% est. |
-| Gemma 4 | 31B Dense | 256K | Apache 2.0 | Native | — |
-| GLM-5.1 | 744B total / 40B active | 200K | Apache 2.0 | No | 58.4% (prior #1; M2.7 may have surpassed) |
-| Mistral | Small 4 | 128K | Apache 2.0 | Yes | — |
-| DeepSeek | V3 | 128K | MIT | No | — |
+### Model Families (April 23, 2026 Update)
+| Family | Best Size | Context | License | Multimodal | SWE-bench Pro | Notes |
+|--------|-----------|---------|---------|------------|--------------|-------|
+| **Kimi K2.6** | **1T total / 32B active MoE** | **256K** | **Modified-MIT** | No | **58.6%** | **NEW April 21 — HLE-Full w/tools #1; 300-agent swarm; Cloudflare Workers AI** |
+| GLM-5.1 | 744B total / 40B active | 200K | Apache 2.0 | No | 58.4% | |
+| MiniMax M2.7 | 229B total / 10B active | 204K | Modified-MIT | No | 56.22% | |
+| Llama 4 | Maverick (17B/128E) | 10M | Commercial | Native | ~54% est. | |
+| Gemma 4 | 31B Dense | 256K | Apache 2.0 | Native | — | |
+| Qwen3.6-Plus | Large (hosted) | 1M | Proprietary | No | — | API-only; OpenAI+Anthropic API compatible |
+| Mistral | Small 4 | 128K | Apache 2.0 | Yes | — | |
+| DeepSeek | V3 | 128K | MIT | No | — | |
 
-Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8% — ~21 points above best open-access model (M2.7).
+Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8% — ~19 points above best open-access model (Kimi K2.6 at 58.6%).
 
 ### Closed-Source Non-Llama Models (NEW — April 9, 2026)
 - **Meta Muse Spark:** Closed-source proprietary model from Meta Superintelligence Labs. Not Llama. Private API preview only. Multi-agent "Contemplating" mode. Ranks 4th on AAII v4.0.
@@ -768,6 +878,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 28. **Execution-enabled literature review as a service (NEW April 16):** arXiv:2604.12198 proves the mini research loop works at scale for computational papers. Same pipeline (parse claims → write reproduction code → execute in sandbox → compare → flag concerns) applies to finance, data science, economics, clinical research analysis. No production product exists outside academic lab demos. Commercially viable immediately for systematic reviewers, journals, large financial institutions with in-house research.
 29. **Harness-as-a-service for regulated industries (NEW April 16):** OpenAI's harness SDK runs on OpenAI infrastructure with OpenAI models. Healthcare, finance, defense teams need the same control plane (loop, routing, handoffs, approvals, tracing, recovery, run state) on their own infrastructure with their own model choices. Open-source harness implementation with pluggable execution backends + pluggable model APIs + audit-grade tracing fills this gap. Vocabulary is now established (OpenAI defined what "harness" means); self-hosted implementation is absent.
 30. **Competitive intelligence service for AI-competing verticals (NEW April 16):** Labs launching products in design (Anthropic design tool), research (OpenAI deep research), productivity (Google Notebook LM) are now direct competitors to vertical SaaS companies. These companies need real-time monitoring: what lab products launched, what capabilities, which customer segments threatened. Monitoring + structured analysis product. No one has built this specifically for "AI labs as direct product competitors."
+31. **Open-source Agent Gateway for non-Google cloud deployments (NEW April 22):** Google's Agent Gateway (identity verification, tool authorization, Model Armor prompt injection defense, audit logging) does not exist in open source for AWS/Azure/self-hosted deployments. A FastAPI-based agent gateway with SPIFFE-style JWT identity verification, per-agent tool allowlists, LLM-based prompt injection classifier, and append-only audit log would address a real enterprise deployment gap. Direct commercial potential as agent security requirements harden.
+32. **Summary quality evaluation harness for multi-agent swarms (NEW April 22):** Kimi K2.6's 300-agent swarm reveals that summary quality is the critical variable in swarm-scale orchestration — but no evaluation framework exists for "how much information loss is acceptable in a sub-agent summary?" A toolkit that: runs sub-agent tasks, generates summaries at multiple compression levels, measures downstream orchestrator quality as a function of summary length/format, and produces summary contract recommendations — is immediately useful to any team building orchestrator-worker architectures.
+33. **Reasoning-native image generation for technical documentation (NEW April 22):** gpt-image-2 thinking mode makes automated diagram generation from structured data (architecture diagrams, sequence diagrams, dependency graphs, ER diagrams, data flow diagrams) viable for the first time. A tool that takes structured data (JSON/YAML/graph) and produces a semantically correct visual diagram via gpt-image-2 thinking mode would replace a painful manual step in documentation workflows. Market: engineering teams maintaining architecture docs, API docs platforms, infrastructure-as-code visualization tools.
 
 ---
 
@@ -904,6 +1017,38 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ---
 
+## Reasoning-Native Image Generation (NEW — April 21, 2026)
+
+### gpt-image-2 / ChatGPT Images 2.0 — First Reasoning-Native Image Model
+- **Released:** April 21, 2026. API model name: `gpt-image-2`. Available to all ChatGPT users and via OpenAI API.
+- **Core architectural novelty:** Two operational modes: (1) Instant — standard diffusion-style generation, fast; (2) Thinking — reasoning pass before pixel generation, with web search, layout planning, and output verification.
+- **Thinking mode pipeline:** Reasoning model (LM) interprets prompt + uploads → web search if needed → produces structured generation spec with semantic constraints → Image synthesis model generates constrained by spec → Verification pass compares output to spec → Regenerate if verification fails.
+- **Why it matters vs. standard diffusion:** Standard image models cannot enforce semantic correctness constraints at generation time — they pattern-match visual appearance, not semantic meaning. Thinking mode enforces correctness via reasoning-pass constraints before generation. Demonstrated capabilities: working QR codes (encoding computed as structured data before pixel generation), dense multilingual text (Japanese, Korean, Chinese, Hindi, Bengali), complex infographics, technical diagrams.
+- **Specs:** Up to 2K resolution; aspect ratios 3:1 to 1:3; up to 8 coherent images per prompt (character/object/style continuity across batch in Thinking mode).
+- **API pricing:** Image input $8/MTok, image output $30/MTok, text $5/MTok. Cost per image: $0.04–$0.35.
+- **Thinking mode access:** API open; consumer thinking mode restricted to Plus/Pro/Business/Enterprise.
+- **Arena performance:** +242 point margin on Image Arena within 12 hours — largest lead ever recorded.
+- **Tradeoffs:** Thinking mode 3–8× more expensive, 5–30s latency vs 1–3s instant. Over-refusal in thinking mode for some legitimate structured outputs.
+- **Decision rule:** Use thinking mode for structured/constrained outputs (must be semantically correct, used without human review). Use instant for creative/aesthetic outputs or when cost/latency dominates.
+- **Pipeline implication:** First image model reliable enough to insert as an unreviewed step in an automated agent pipeline for structured visual outputs.
+- **Source:** https://openai.com/index/introducing-chatgpt-images-2-0/
+
+---
+
+## Post-Training Automation (NEW — April 21, 2026)
+
+### ml-intern — Automated Post-Training Research Loop (Hugging Face)
+- **Released:** April 21, 2026. Open-source on GitHub: https://github.com/huggingface/ml-intern
+- **What it is:** An AI agent that autonomously executes the full post-training research cycle: reads arXiv papers → selects training techniques → assesses/generates synthetic data → implements training (including GRPO) → runs experiments on HF Jobs → tracks results via Trackio.
+- **Built on:** smolagents framework + Hugging Face Jobs + Trackio.
+- **Demonstrated result:** Qwen3-1.7B GPQA: 8.5% → 32% in under 10 hours. Outperforms Claude Code on the same GPQA task (22.99%).
+- **Key mechanism:** Autonomous data quality assessment — the agent evaluates whether existing datasets are sufficient quality for the target capability; if not, writes scripts to generate synthetic examples and upsamples edge cases. This closes the "human decides on data" loop that was previously unautomated.
+- **What it replaces:** ML engineer time for: (a) identifying techniques from literature, (b) assessing data quality, (c) writing training code, (d) submitting/monitoring jobs, (e) evaluating results, (f) iterating. Entire loop invoked by a single agent call.
+- **Limitation:** More reliable for capability exploration ("can we improve X?") than production fine-tuning (fixed, stable configuration). Research iteration, not deployment pipeline.
+- **Connection to prior patterns:** The "model-as-researcher" pattern demonstrated at scale (MiniMax M2.7's RL scaffold self-optimization, April 14; AiScientist multi-agent ML engineering, April 14). ml-intern is the first accessible open-source implementation that non-research teams can deploy directly.
+
+---
+
 ## Concept Evolution Log
 
 - [April 6]: T² scaling — pretraining should account for inference cost; overtrain smaller models for agent workloads
@@ -970,8 +1115,23 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 21]: Interface paradigm decision framework formalized — three agent interface tiers (computer use, MCP, tool calling) with clear reliability/speed/cost tradeoffs; computer use = integration bootstrap (last resort), not default production pattern; emerging unproductized pattern: computer use → MCP compiler (automate the handoff from observed UI sessions to structured tool schemas).
 - [April 21]: ChatGPT April 20 outage — 90-minute partial outage across conversations, login, voice, image gen, and Codex simultaneously; shared infrastructure dependency confirmed; Codex inherits ChatGPT availability profile, not separate SLA. Build circuit-breaker + fallback logic for any production workflow with OpenAI dependency.
 - [April 21]: OpenAI Spud still pre-launch as of April 21; Polymarket ~75% for April 23. "Boba by stealth" leads coding Arena leaderboard (score 1116, above Opus 4.7 at 1092) with no public model card — weak signal pending primary-source evidence.
+- [April 22]: Google Cloud Next 2026 launched Gemini Enterprise Agent Platform — Vertex AI rebranded; ADK v1.0 stable (4 languages); A2A v1.2 with signed Agent Cards (Linux Foundation governance; 150 orgs in production); Agent Identity (SPIFFE SVID, X.509 cert per agent, IAM integration); Agent Gateway (air traffic control with identity verify + policy enforce + Model Armor + audit logging). First time a major cloud treats agent identity and security as infrastructure-layer concerns. AWS/Azure have no equivalent as of April 23.
+- [April 22]: A2A v1.2 now in LangGraph, CrewAI, LlamaIndex Agents, Semantic Kernel, AutoGen. Inflection point: A2A is now a cross-framework standard to design to, not a Google-specific protocol to evaluate.
+- [April 21]: Kimi K2.6 (Moonshot AI) — 1T MoE open-weight model scales agent swarm to 300 sub-agents / 4,000 coordinated steps (3× vs K2.5). Leads all frontier models on HLE-Full with tools (54.0). Open weights on Hugging Face + Cloudflare Workers AI. Summary compression confirmed at 300-agent scale. First open-weight model to lead closed-source on HLE-Full-with-tools benchmark.
+- [April 21]: gpt-image-2 (ChatGPT Images 2.0) — first reasoning-native image model; thinking mode adds reasoning pass (web search + layout planning + structured generation spec) before pixel generation + verification pass after. Working QR codes, dense multilingual text, structured infographics now reliably generatable. +242 Image Arena margin. Closes the "image generation is probabilistic, cannot enforce semantic constraints" assumption for structured outputs.
+- [April 21]: ml-intern (Hugging Face) — open-source agent for autonomous post-training research loop; Qwen3-1.7B GPQA 8.5%→32% in 10 hours. Closes the ML research iteration loop from goal to trained checkpoint without human handholding at each step.
+- [April 21-22]: SpaceX-Cursor $60B option deal — SpaceX/xAI acquired option to buy Cursor (AI code editor) for $60B; $10B collaboration agreement for joint development using Colossus supercomputer. SpaceX enters coding agent market as third major competitor to Claude Code and Codex. Acquisition post-IPO (summer 2026). Cursor currently uses Claude/GPT-5.4 — backend routing may shift to Grok/xAI models.
+- [April 23]: OpenAI Spud still pre-release morning of April 23; Polymarket 86%. No benchmarks. Hold evaluation-dependent decisions until numbers are published.
+- [April 23 — evening pass]: OpenAI Workspace Agents launched April 22 — Codex-powered always-on cloud agents replace GPTs as enterprise agent product; stateful across sessions, team-shared, admin-governed, Slack/Salesforce/Drive integrated, free until May 6 then credit-based pricing. Product-layer enterprise answer to Google's infrastructure-layer answer (Gemini Enterprise Agent Platform). Neither shipped both layers in the same week.
+- [April 23 — evening pass]: Google Deep Research Max launched April 22 — autonomous research agents (two tiers: standard + Max) on Gemini 3.1 Pro with MCP support for web + private data fusion. 93.3% DeepSearchQA (highest published for any research agent), 54.6% HLE. Competes directly with custom Agentic RAG for research workflows without latency constraints.
+- [April 23 — evening pass]: OpenAI Spud did not launch April 23 despite 86% Polymarket odds. Anticipated week of April 27. No architecture/benchmark information exists. Maintain evaluation hold.
+- [April 24]: DeepSeek V4 Pro + Flash released MIT license — CSA+HCA hybrid compressed attention cuts KV cache 90% at 1M tokens vs V3.2, 73% FLOP reduction. First open-weight architecture to make 1M-context production deployments economically viable. V4-Flash (~158GB) fits single H200. Engram Memory (O(1) hash lookup for static facts, MoE reserved for reasoning) open-sourced at deepseek-ai/Engram. mHC (manifold-constrained hyper-connections) solves trillion-parameter training instability. LiveCodeBench 93.5% leads all models. RAG-vs-long-context decision tree updated: under 500K tokens bounded corpus, V4-Flash is now a legitimate RAG alternative.
+- [April 24]: GPT-5.5 API live — natively omnimodal (single pretraining, not stitched pipeline), 1M context, GB200/GB300 NVL72 hardware co-design (same latency as GPT-5.4 per token despite greater capability). Terminal-Bench 2.0 82.7% (new standard-model SOTA), GDPval 84.9%. $5/$30 per M in/out (2× GPT-5.4). First frontier model with publicly stated hardware co-design at pretraining time. Three variants: base, Thinking, Pro.
+- [April 24]: Harness engineering formalized as research field — 3 papers in 48 hours: arXiv:2604.18071 (empirical taxonomy of 70 agent systems, 5 design dimensions), arXiv:2604.20938 HARBOR (BO over flag space outperforms expert manual tuning), arXiv:2604.21003 (meta-evolution loop automates harness design across tasks). Production evidence: harness accounts for 15-25% of agent benchmark performance independently of model weights. "Custom harness as differentiator" moat has 12-18 month narrowing timeline.
+- [April 23]: Tencent Hy3-preview open weights — 295B/21B MoE, 256K context, dense-MoE hybrid. Led by Yao Shunyu (former OpenAI). Third independent 200B+ MoE open-weight option now available (alongside Kimi K2.6 1T/32B, DeepSeek V4-Pro 1.6T/49B). Open-weight 200B+ tier is becoming crowded.
+- [April 25]: OpenAI Spud still anticipated week of April 27. No primary-source technical information. Maintain hold on evaluation-dependent decisions.
 
-*Last updated: April 21, 2026*
+*Last updated: April 25, 2026*
 
 ---
 
