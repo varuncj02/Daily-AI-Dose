@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 25, 2026 (v9 — DeepSeek V4 Pro/Flash: CSA+HCA hybrid attention cuts KV cache 90% at 1M tokens, MIT license; GPT-5.5 API: natively omnimodal, 1M context, GB200 hardware co-design; Harness engineering formalized as research field: HARBOR (Bayesian optimization), meta-evolution loop; Tencent Hy3-preview 295B MoE open weights)*
+*Last updated: April 27, 2026 (v10 — ICLR 2026: "LLMs Get Lost in Multi-Turn Conversation" quantifies 39% avg performance drop + 112% reliability increase in multi-turn interactions across all frontier models; TurboQuant full mechanism documented: PolarQuant + QJL residual correction = 6× KV cache compression, no retraining; SGLang Day-0 DeepSeek V4 support live; MemAgents workshop confirms memory as primary agent capability bottleneck; UniRoute: dynamic LLM routing for unseen models)*
 
 ---
 
@@ -94,6 +94,16 @@ External Storage (episodic/semantic/procedural)
     └── KV Store (for structured facts)
 ```
 Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-Place TTT), vector/graph/KV external. Distinction is which tier handles which query type and update frequency.
+
+### ICLR 2026 MemAgents Workshop — Research Community Consensus (April 27, 2026)
+- **ICLR 2026 MemAgents Workshop ("Memory for LLM-Based Agentic Systems")** running April 27 in Rio de Janeiro (hybrid). Research community organizing thesis: *"the limiting factor is increasingly not raw model capability but memory: how agents encode, retain, retrieve, and consolidate experience into useful knowledge for future decisions."*
+- This is now the consensus framing in the research community, not a design intuition. Memory architecture is the dominant new research investment axis in agent systems for 2026.
+- **Workshop focus areas with direct build implications:**
+  - Episodic / semantic / working memory separation as a design principle (not just a taxonomy)
+  - Forgetting and consolidation metrics: standardized metrics for memory usage and retrieval accuracy across long-horizon sessions
+  - Neuroscience-inspired memory architectures — gated and bounded memory (ICLR CraniMem paper)
+  - Multi-session memory persistence: how agents build durable knowledge across separate deployment sessions
+- **Emerging gap:** No standardized memory benchmark for multi-session agents exists. The workshop's production of such a benchmark (analogous to SWE-bench for coding) would be a high-value artifact.
 
 ---
 
@@ -468,6 +478,26 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Build implication:** Evaluation harness isolation is now a prerequisite, not an optimization. If you're shipping benchmark results, audit your harness against BenchJack's exploit categories first.
 - **Reference:** https://rdi.berkeley.edu/blog/trustworthy-benchmarks-cont/
 
+### Multi-Turn Reliability — Quantified Failure Modes (NEW — April 25, 2026 / ICLR 2026 Outstanding Paper)
+- **Source:** "LLMs Get Lost In Multi-Turn Conversation," Microsoft Research + Salesforce, ICLR 2026 Outstanding Paper ([arXiv:2505.06120](https://arxiv.org/abs/2505.06120)); code at `microsoft/lost_in_conversation`
+- **Scale:** 200,000+ simulated conversations, 6 generation tasks, all major frontier models tested
+- **Top-line finding:** All tested LLMs show **39% average performance drop** in multi-turn vs. equivalent single-turn. Performance delta decomposes as: **16% aptitude loss + 112% reliability increase** (unreliability, measured as variance across repeated runs at the same conversation state)
+- **The 16%/112% split is the key insight:** The dominant failure is not capability degradation — it's reliability collapse. The model has the capability to answer correctly but increasingly fails to deploy it as conversation length grows.
+- **Four identified failure mechanisms:**
+  1. **Premature solution commitment:** Model attempts full answer before spec is fully established. Once committed, anchors on the early (possibly wrong) answer even when corrected.
+  2. **Incorrect-turn over-reliance:** When an early turn has a wrong answer, subsequent turns generate "bloated" responses that reconcile vs. restart, compounding error rather than discarding it.
+  3. **Loss-of-middle-turns:** Attention disproportionately weights first and last turns. Middle-turn information (tool results, user corrections, constraints provided mid-session) is systematically underweighted.
+  4. **Verbosity spiraling:** Response length grows across turns with increasing filler, compressing effective information density per context window token.
+- **What doesn't work:** System prompt hint "this conversation is likely multi-turn and underspecified" → +1% average gain. Not architecturally solvable via prompting.
+- **What works:**
+  - Consolidate instructions: front-load full specification before first answer attempt. Multi-turn spec delivery substantially underperforms consolidated single-turn.
+  - **2-checkpoint heuristic:** 2 explicit harness-level confirmation checkpoints per session → 41% reduction in error propagation in coding tasks.
+  - Context reset on drift: summarize goal + constraints fresh and discard history when inconsistency detected.
+  - Middle-turn re-anchoring: explicitly repeat critical middle-turn information in next system message injection.
+- **Architecture implication:** Multi-turn reliability is a first-class design axis, not a free consequence of general capability. Single-turn benchmark scores are systematically optimistic estimates of production agent performance. Session architecture (commitment tracking, checkpoint injection, context reset) must be treated as a harness-layer responsibility.
+- **Connection to Depth Ceiling finding:** The Depth Ceiling limits *latent reasoning depth* per forward pass; multi-turn reliability limits *session coherence*. Both are structural architectural limits, not capability gaps. Neither is solved by model scale alone.
+- **Relationship to harness engineering:** The 2-checkpoint finding is a harness intervention. Multi-turn reliability is now the third axis of harness design (alongside model selection and tool routing). Add multi-turn test suites to any harness optimization pipeline.
+
 ### Reliability Gap (Critical — April 2026)
 - **Finding:** 90% of deployed legacy agents fail within weeks (Harvard Berkman Klein / Fortune, March-April 2026)
 - **Root cause:** Lack of architectural depth, no confidence calibration
@@ -594,13 +624,20 @@ Three agent interface paradigms ranked by reliability and setup cost:
 
 ## Inference & Serving
 
-### KV Cache Optimization (April 2026)
-- **TurboQuant (Google, April 2026):** Polar coordinate transform + 1-bit error correction → 3-bit KV cache
-  - 6× compression, zero accuracy loss, no calibration required
-  - Previous best (KIVI): 2.6× with accuracy tradeoffs
-  - **NVIDIA KVTC (complementary):** Up to 20× via transform coding (some quality loss)
-  - Impact: 2-4× higher batch sizes → 60-70% cost reduction for long-context serving
-- **Use case priority:** Long-context agents (100K+ tokens) see largest benefit
+### KV Cache Optimization (Updated — April 27, 2026)
+
+**TurboQuant (Google, ICLR 2026 — presented April 25, 2026) — FULL MECHANISM DOCUMENTED**
+- **What it does:** 6× KV cache compression at 3-bit precision; near-zero accuracy loss; no retraining or fine-tuning required; drop-in inference-time change
+- **Two-stage pipeline:**
+  1. **PolarQuant (rotation-based transform):** Apply random rotation matrix to each K/V vector (mathematically lossless; redistributes variance uniformly across coordinates, eliminating "hot dimensions"). Map coordinate pairs onto polar space recursively until vector is represented as {1 radius, N angles}. Apply Lloyd-Max optimal centroid scalar quantization in polar coordinates. Result: 3-bit effective key, 2-bit effective value.
+  2. **QJL residual correction (1-bit per vector):** Uses Quantized Johnson-Lindenstrauss sketching to add a single 1-bit correction term that cancels residual bias in attention score estimates. Brings distortion to provably near-optimal levels for inner product computation.
+- **Theoretical basis:** Near-optimal inner product distortion bound (formally derived). Stronger than empirical-only prior approaches.
+- **Empirical results:** Near-zero accuracy loss on Gemma and Mistral checkpoints. Previous best (KIVI): 2.6× with accuracy tradeoffs. TurboQuant is a step change in the compression/quality tradeoff.
+- **Hardware/memory impact:** At 6× compression: model requiring 80GB KV at 128K context → ~13GB (fits A100 40GB). At 1M context, makes KV tractable on H100 80GB setups that previously required 4× scale-out.
+- **Orthogonality to CSA/HCA:** TurboQuant (algorithmic quantization) and DeepSeek V4's CSA/HCA (architectural compression) are orthogonal. Combined deployment: additive compression benefits.
+- **Official release status:** arXiv:2504.19874 (ICLR 2026). No official Google production library yet (expected Q2 2026). Community implementations: `OnlyTerp/turboquant`, `0xSero/turboquant`, `tonbistudio/turboquant-pytorch` (research-grade). vLLM integration: tracked, not merged.
+- **NVIDIA KVTC (complementary):** Up to 20× via transform coding (some quality loss — different use case)
+- **Use case priority:** Long-context agents (100K+ tokens) see largest benefit; orthogonal to V4 CSA/HCA
 
 ### DeepSeek V4 CSA+HCA Hybrid Attention — Production Long-Context Architecture (NEW — April 24, 2026)
 - **What it is:** Hybrid compressed attention replacing standard full attention across all transformer layers in V4-Pro (1.6T total / 49B active) and V4-Flash (284B / 13B active). Both MIT license.
@@ -616,7 +653,8 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Key results at 1M tokens vs V3.2:** 90% KV cache reduction, 73% FLOP reduction
 - **Engram Memory (companion):** O(1) hash-based lookup for static factual patterns; reserves MoE expert capacity for reasoning. Optimal split: 20-25% static memory / 75-80% dynamic compute. Open-sourced at `deepseek-ai/Engram` on GitHub.
 - **Manifold-Constrained Hyper-Connections (mHC):** Prevents catastrophic signal amplification (reduces 3,000× to <2×) in >60-layer networks; enabled stable trillion-parameter training at 6.7% overhead
-- **Deployment realities:** V4-Flash (~158GB FP4+FP8) fits single H200 node. V4-Pro (~862GB) requires 8×H100 80GB (DGX class). vLLM is primary inference engine (first-class support). SGLang support maturing.
+- **Deployment realities:** V4-Flash (~158GB FP4+FP8) fits single H200 node. V4-Pro (~862GB) requires 8×H100 80GB (DGX class). vLLM: first-class support. SGLang: Day-0 support live as of April 25 (inference maturity concern resolved). NVIDIA hosted endpoints on build.nvidia.com available for prototyping without self-hosting.
+- **NVIDIA Blackwell performance (April 26, 2026):** V4-Pro on GB200 NVL72: >150 tok/sec/user. V4-Pro on GB300/Blackwell Ultra: ~3,500 tok/sec aggregate throughput.
 - **Benchmarks (V4-Pro):** LiveCodeBench 93.5% (leads all), SWE-bench Verified 80.6%, Terminal-Bench 2.0 67.9% (leads Claude Opus 4.7's 65.4%), Codeforces 3206
 - **API pricing:** Flash $0.14/$0.28 per M in/out; Pro $1.74/$3.48 per M in/out
 - **RAG vs. long-context decision update:** Under 500K tokens, bounded corpus → V4-Flash at 1M context is now a legitimate alternative to chunked RAG. Compare: inference cost per query vs. (embedding pipeline + retrieval infra amortized). For web-scale and freshness-dominated: RAG still wins.
@@ -635,6 +673,14 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Mirror-SD:** 5.8× on 14-66B models
 - **Batch speculative decoding:** 3× throughput at batch size 8 with 95% output equivalence
 - **Status:** Research → production path; watch for vLLM/SGLang integration
+
+### Model Routing — Dynamic / Universal (NEW — April 25, 2026 / ICLR 2026)
+- **UniRoute (Google, arXiv:2502.08773, ICLR 2026):** LLM routing that generalizes to previously unseen models at test time.
+- **Problem it solves:** Prior routing work (RouterBench, etc.) assumed a fixed pool of candidate models known at training time. UniRoute handles new models added to the pool post-deployment.
+- **Mechanism:** Represents each LLM as a feature vector derived from its predictions on a representative set of prompts. Two instantiations: cluster-based routing and learned cluster map. Routes incoming queries to the smallest feasible model for that query class.
+- **Validated across 30+ unseen LLMs** with theoretical guarantees (excess risk bound on the routing policy).
+- **Why it matters:** As the open-weight ecosystem grows rapidly (new models monthly), static routing configurations become stale. UniRoute provides a principled path to dynamic cost optimization across a changing model pool.
+- **Build implication: Watch.** The mechanism is validated; production tooling doesn't exist yet. Relevant once your multi-model routing configuration has >5 models and updates more than monthly.
 
 ### Serving Cost Optimization Patterns
 - Smart routing (capability-matched model per task): 47-80% cost reduction
@@ -734,7 +780,7 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
   - FlexKV: smart KV cache offloading — stores only high-reuse blocks (replaces blunt offloading); new backend for better long-context cost management
   - Full Gemma 4 support (requires transformers≥5.5.0); AMD/ROCm support for Gemma 4
   - ~~"Waiting for Saguaro integration"~~ — Saguaro integration status unchanged; v0.19.0 focuses on spec decode + EPLB + KV
-- **SGLang:** Latest stable v0.5.9 (Feb 2026); RadixArk commercial spinout valued ~$400M
+- **SGLang:** Latest stable v0.5.9 (Feb 2026); RadixArk commercial spinout valued ~$400M. **Day-0 DeepSeek V4 support (April 25, 2026):** Full native support for V4's CSA/HCA hybrid attention, FP4 expert weights, and mHC. Three serving recipes: low-latency (DP/TP), balanced (DP/TP/EP default), max-throughput (full DP/TP/SP/EP/PP/CP + Tilelang kernels). Prefill/decode disaggregation supported. Verified RL pipeline (Miles integration, step-0 train-inference diff ~0.02–0.03). Hardware: Hopper and Blackwell. The inference engine maturity concern for V4 (flagged April 24) is resolved as of April 25.
 
 ### Quantization
 - 4-bit and 2-bit quantized weights: Gemma 4 E2B at sub-1.5GB RAM
@@ -1130,8 +1176,14 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 24]: Harness engineering formalized as research field — 3 papers in 48 hours: arXiv:2604.18071 (empirical taxonomy of 70 agent systems, 5 design dimensions), arXiv:2604.20938 HARBOR (BO over flag space outperforms expert manual tuning), arXiv:2604.21003 (meta-evolution loop automates harness design across tasks). Production evidence: harness accounts for 15-25% of agent benchmark performance independently of model weights. "Custom harness as differentiator" moat has 12-18 month narrowing timeline.
 - [April 23]: Tencent Hy3-preview open weights — 295B/21B MoE, 256K context, dense-MoE hybrid. Led by Yao Shunyu (former OpenAI). Third independent 200B+ MoE open-weight option now available (alongside Kimi K2.6 1T/32B, DeepSeek V4-Pro 1.6T/49B). Open-weight 200B+ tier is becoming crowded.
 - [April 25]: OpenAI Spud still anticipated week of April 27. No primary-source technical information. Maintain hold on evaluation-dependent decisions.
+- [April 25]: "LLMs Get Lost in Multi-Turn Conversation" (ICLR 2026 Outstanding Paper, Microsoft Research + Salesforce) quantifies what builders have observed qualitatively: 39% average performance drop in multi-turn settings across all frontier models; decomposed as 16% aptitude loss + 112% reliability increase. 4 structural failure modes: premature commitment, incorrect-turn over-reliance, loss-of-middle-turns, verbosity spiraling. System prompt hints are insufficient (+1%). 2-checkpoint harness intervention reduces error propagation by 41% in coding tasks. Multi-turn reliability is now a first-class agent evaluation axis, not an afterthought. Single-turn benchmark scores are systematically optimistic proxies for production agent performance.
+- [April 25]: TurboQuant full mechanism documented (ICLR 2026 presentation, Google Research). Two stages: PolarQuant (random rotation → polar coordinates → Lloyd-Max quantization, eliminating hot-dimension MSE) + QJL 1-bit residual correction (unbiased inner product estimate). 6× KV cache compression, 3-bit keys/2-bit values, provably near-optimal, no retraining. Official library not yet released (expected Q2 2026). Community implementations available for evaluation. vLLM integration tracked. Orthogonal to DeepSeek V4 CSA/HCA — can be combined for additive compression.
+- [April 25]: SGLang Day-0 DeepSeek V4 support published (LMSYS Blog). Full native support for V4's CSA/HCA, FP4 expert weights, mHC. Three serving recipes (low-latency, balanced, max-throughput). Verified RL pipeline with Miles. V4 inference maturity concern from April 24 brief resolved: both vLLM and SGLang are production-ready.
+- [April 26]: NVIDIA V4-Pro on GB200 NVL72 benchmark published: >150 tok/sec/user. GB300/Blackwell Ultra: ~3,500 tok/sec aggregate. NVIDIA hosted endpoints (build.nvidia.com) live for V4 prototyping without GPU hardware.
+- [April 27]: ICLR 2026 MemAgents workshop (Memory for LLM-Based Agentic Systems) running today. Organizing thesis confirmed as research community consensus: "the limiting factor is increasingly not raw model capability but memory." Aligns with KB pattern established April 9 (In-Place TTT, ByteRover tiered memory). Memory architecture is now the dominant research investment axis in agent systems.
+- [April 27]: UniRoute (Google, ICLR 2026, arXiv:2502.08773) introduces dynamic LLM routing that generalizes to unseen models at test time via feature-vector model representations. Prior routing work assumed fixed model pools; UniRoute handles dynamic pools. Validated across 30+ unseen LLMs with theoretical guarantees. Relevant as open-weight model release cadence accelerates.
 
-*Last updated: April 25, 2026*
+*Last updated: April 27, 2026*
 
 ---
 
