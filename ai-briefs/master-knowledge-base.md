@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: April 27, 2026 (v10 — ICLR 2026: "LLMs Get Lost in Multi-Turn Conversation" quantifies 39% avg performance drop + 112% reliability increase in multi-turn interactions across all frontier models; TurboQuant full mechanism documented: PolarQuant + QJL residual correction = 6× KV cache compression, no retraining; SGLang Day-0 DeepSeek V4 support live; MemAgents workshop confirms memory as primary agent capability bottleneck; UniRoute: dynamic LLM routing for unseen models)*
+*Last updated: May 6, 2026 (v11 — Anthropic finance agents reveal skills+connectors+subagents as the repeatable vertical agent template; Gemma 4 MTP Drafters: 3× speedup via shared-KV speculative decoding, Apache 2.0, drop-in for vLLM/SGLang/Ollama; MolmoAct2: open action reasoning model beats π0.5, flow-matching + VLM backbone with per-layer KV conditioning; 1M exposed AI services scan documents deployment security crisis; agentic red teaming agent compresses weeks→hours)*
 
 ---
 
@@ -668,11 +668,21 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Pattern distinction:** "Model optimized for hardware at inference time" (quantization, kernel tuning) ≠ "Model architecture designed for hardware at pretraining time." GPT-5.5 is the latter. The latter provides deeper efficiency gains and is harder to replicate retroactively.
 - **Expected timeline:** Hardware co-design will become standard at frontier scale within 12 months.
 
-### Speculative Decoding (April 2026)
+### Speculative Decoding (Updated — May 6, 2026)
 - **Saguaro (ICLR 2026):** Pre-emptive verification outcome prediction → 2× over optimized SD, 5× over standard AR
 - **Mirror-SD:** 5.8× on 14-66B models
 - **Batch speculative decoding:** 3× throughput at batch size 8 with 95% output equivalence
 - **Status:** Research → production path; watch for vLLM/SGLang integration
+
+**Gemma 4 MTP Drafters — Shared-KV Speculative Decoding (NEW — May 6, 2026)**
+- **What shipped:** Apache 2.0 draft models for full Gemma 4 family; native support in transformers, MLX, vLLM, SGLang, Ollama. Zero quality degradation — output distribution is mathematically identical to target model.
+- **Core architectural innovation: shared KV cache.** Unlike standard speculative decoding (draft model runs independently with its own KV cache), Gemma 4 MTP draft heads read the target model's activations directly at each layer and share its KV cache. No separate context recomputation; draft generation cost is nearly zero relative to the target model's forward pass.
+- **MTP (Multi-Token Prediction) mechanism:** Draft head predicts N tokens simultaneously from a single target model forward pass. Target model verifies in batch — same cost as generating 1 token. On acceptance: full drafted sequence + 1 additional token output in standard per-token time.
+- **Hardware performance:** Dense Gemma 4 models at batch 1: up to 3× speedup. 26B MoE at batch 1 on Apple Silicon: limited gains (expert routing overhead degrades MTP acceptance; MoE routing is input-dependent in a way that complicates multi-step prediction). 26B MoE at batch 4–8: ~2.2×. Edge models (E2B, E4B): efficient clustering technique in embedder provides additional acceleration.
+- **Failure modes:** (1) Out-of-distribution content → lower acceptance rate → proportionally reduced speedup. (2) High temperature sampling → increased token variability → lower acceptance rate. (3) MoE at batch 1 → expert routing overhead limits gains.
+- **Deployment:** Drop-in change. vLLM: `--speculative-model` flag. SGLang: `--draft-model` flag. Ollama: speculative decoding model pair. No new serving infrastructure required.
+- **Relationship to prior speculative decoding work:** Prior approaches (Saguaro, Mirror-SD) also achieve speedups but require either separate model architectures or training changes. Shared-KV MTP is architecturally simpler and provably output-equivalent. This is the production default for Gemma 4; expect the pattern to propagate to other model families.
+- **Key update:** Speculative decoding is now a production default for Gemma 4, not an experiment. Zero-risk, zero-quality-tradeoff, immediate deployment change for any existing Gemma 4 setup at batch 1.
 
 ### Model Routing — Dynamic / Universal (NEW — April 25, 2026 / ICLR 2026)
 - **UniRoute (Google, arXiv:2502.08773, ICLR 2026):** LLM routing that generalizes to previously unseen models at test time.
@@ -788,6 +798,21 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ---
 
+## Embodied AI & Robotics (Updated — May 5, 2026)
+
+### MolmoAct2 — Open Action Reasoning Model (NEW — May 5, 2026)
+- **What shipped:** Fully open action reasoning model for real-world robot deployment (arXiv:2605.02881). Open weights, training code, action tokenizer, three datasets. Beats Physical Intelligence's π0.5 on all evaluated tasks on a Franka arm.
+- **Architecture:** Spatial VLM backbone (Molmo2-ER) + flow-matching continuous action expert, coupled via per-layer KV-cache conditioning
+  - **Molmo2-ER:** Specialized embodied-reasoning VLM trained on 3.3M examples with specialize-then-rehearse recipe (spatial understanding → general VLM to prevent forgetting). Outperforms GPT-5, Gemini 2.5 Pro, Qwen3-VL-8B on 13 embodied-reasoning benchmarks (avg 63.8/100).
+  - **Flow-matching action expert:** Reads intermediate VLM layer activations (per-layer KV conditioning), not just final output tokens. Gives action expert rich spatial/semantic context for continuous motor control. Combines discrete planning (VLM) with continuous action generation (flow matching) in a single architecture.
+  - **OpenFAST Tokenizer:** Open-weight action tokenizer trained on millions of trajectories across 5 robot embodiments — enables cross-embodiment transfer
+- **Speed:** 37× faster than original MolmoAct — makes interactive real-time control cycles practical
+- **MolmoAct2-Think (adaptive reasoning):** Re-predicts depth tokens only for scene regions that change between timesteps — geometric grounding at fraction of prior latency
+- **Datasets released:** MolmoAct2-BimanualYAM (720 hrs bimanual trajectories — largest open bimanual dataset), DROID subset, SO100/101
+- **Real-world results (Franka arm):** 100% apple-to-plate, 86.7% pipette-to-tray, 62% multi-object sequence tasks — all better than π0.5
+- **Key architectural pattern:** VLM backbone + KV-cache-conditioned continuous action expert is the current frontier design for embodied AI. Per-layer conditioning (not final-output only) is the specific contribution enabling tight reasoning-action coupling.
+- **Implication:** Open-source robotics foundation models are now competitive with proprietary alternatives. Full release (weights + code + data + tokenizer) makes this reproducible and improvable. Embodied AI is following the open-source language model trajectory — 12-18 months behind.
+
 ## Embodied AI & Robotics (NEW — April 2–9, 2026)
 
 ### Gemini Robotics-ER 1.6 + Boston Dynamics Spot (NEW — April 14-15, 2026)
@@ -891,9 +916,30 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ---
 
+## Vertical Agent Deployment Patterns (NEW — May 5, 2026)
+
+### Skills + Connectors + Subagents: The Repeatable Vertical Agent Template
+- **Source:** Anthropic Finance Agents release (May 5, 2026) — 10 reference architectures for financial services
+- **The three-layer separation:**
+  1. **Skills layer:** Domain instructions + task knowledge + decomposition logic. Owned by domain experts. Updated slowly (weekly/monthly). Examples: pitchbook construction methodology, KYC screening logic, month-end closing procedures.
+  2. **Connectors layer:** Governed data access — MCP integrations to data sources (Bloomberg, Moody's, internal ledgers). Owned by IT/security/data vendors. Updated when data sources change.
+  3. **Subagents layer:** Specialized Claude model calls for specific sub-tasks (comparables selection, methodology check, reconciliation verification). Owned by ML engineers. Updated when models or task decomposition changes.
+- **Why separation matters:** Each layer has different ownership, update frequency, and testing surface. Conflating them in a single system prompt produces brittle agents that break when any one layer changes. Separated layers are independently testable and updateable.
+- **Deployment options:** Plugin (Claude Cowork / Claude Code) for human-in-the-loop → Claude Managed Agents cookbook for programmatic/automated use
+- **The Moody's MCP pattern:** A data vendor (600M+ company coverage) building their full platform as a native Claude MCP app rather than a third-party API wrapper. This is enterprise data integration at MCP scale: data stays in vendor environment; agent gets native access. Expect proprietary data vendors to follow this pattern.
+- **MS365 cross-application context:** One agent session maintains context across Excel, PowerPoint, Word, Outlook simultaneously. Removes "re-explain the context" friction at application boundaries. Same multi-turn reliability risks apply (from "LLMs Get Lost" finding) — validate session length in production.
+- **Repeatable pattern:** Finance is first. Legal, clinical, engineering verticals will follow. Reference architecture is public at anthropic.com/news/finance-agents.
+
+### AI Security Exposure at Deployment Scale (NEW — May 5, 2026)
+- **Scan scope:** 1 million exposed AI services identified; 2 million+ hosts scanned
+- **Key findings:** 31% of 5,200+ queried Ollama servers answered without authentication (model loaded, ready to query); exposed n8n and Flowise agent management platforms without login; Claude-powered deployments with API keys in plaintext; multimodal chatbots freely accessible
+- **Root cause:** `ollama pull` + `ollama serve` deploys inference without authentication by default. Teams prioritize speed of deployment over security baseline.
+- **Immediate mitigation:** Add authentication via reverse proxy before any Ollama instance is accessible outside localhost (Nginx + basic auth, Traefik + middleware, or Caddy + basicauth). 15-minute configuration change, zero performance cost.
+- **Structural issue:** Agent management platforms (n8n, Flowise) have the same default-open deployment problem. All self-hosted agent infrastructure should be treated as requiring explicit security configuration before network exposure.
+
 ## Business Opportunities & Infra Gaps
 
-### High-Priority Gaps (April 14, 2026 Update)
+### High-Priority Gaps (Updated — May 6, 2026)
 1. **Agent Memory-as-a-Service:** Managed LLM-curated hierarchical memory for vertical agents
 2. **Agent Reliability Monitoring:** 90% failure rate, no mature monitoring tool; confidence calibration unsolved
 3. **Long-horizon agent observability (April 8):** No tooling for monitoring agents running 8-hour / 600+ iteration sessions — reasoning drift, strategy revision tracking, context budget management
@@ -927,6 +973,10 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 31. **Open-source Agent Gateway for non-Google cloud deployments (NEW April 22):** Google's Agent Gateway (identity verification, tool authorization, Model Armor prompt injection defense, audit logging) does not exist in open source for AWS/Azure/self-hosted deployments. A FastAPI-based agent gateway with SPIFFE-style JWT identity verification, per-agent tool allowlists, LLM-based prompt injection classifier, and append-only audit log would address a real enterprise deployment gap. Direct commercial potential as agent security requirements harden.
 32. **Summary quality evaluation harness for multi-agent swarms (NEW April 22):** Kimi K2.6's 300-agent swarm reveals that summary quality is the critical variable in swarm-scale orchestration — but no evaluation framework exists for "how much information loss is acceptable in a sub-agent summary?" A toolkit that: runs sub-agent tasks, generates summaries at multiple compression levels, measures downstream orchestrator quality as a function of summary length/format, and produces summary contract recommendations — is immediately useful to any team building orchestrator-worker architectures.
 33. **Reasoning-native image generation for technical documentation (NEW April 22):** gpt-image-2 thinking mode makes automated diagram generation from structured data (architecture diagrams, sequence diagrams, dependency graphs, ER diagrams, data flow diagrams) viable for the first time. A tool that takes structured data (JSON/YAML/graph) and produces a semantically correct visual diagram via gpt-image-2 thinking mode would replace a painful manual step in documentation workflows. Market: engineering teams maintaining architecture docs, API docs platforms, infrastructure-as-code visualization tools.
+34. **Vertical agent template library for non-finance domains (NEW May 5):** Anthropic shipped the skills+connectors+subagents pattern for finance. Legal (contract review, due diligence, compliance screening), clinical (SOAP notes, prior auth, differential diagnosis support), and engineering (incident response, architecture review, tech debt triage) are un-addressed. First-mover advantage is real — open-source high-quality domain templates will own community mindshare before lab-official verticals ship.
+35. **Speculative decoding benchmark suite for open models (NEW May 6):** With Gemma 4 MTP drafters live and the pattern expected to propagate to Llama 4, Qwen3, Mistral 3.5, no standardized benchmark for measuring acceptance rates across workload types (creative, factual, code, math, structured output) across model families exists. Public leaderboard would immediately serve inference engine community.
+36. **Agent deployment security scanner (NEW May 5):** Automated scanner that checks a deployed agent stack for: unauthenticated endpoints, API key exposure, missing rate limiting, unvalidated tool call inputs, absent audit logging. Produces prioritized remediation checklist. 1M exposed services scan documents demand scale; tooling doesn't exist.
+37. **Agentic red teaming automation platform (NEW May 5):** Dreadnode paper (arXiv:2605.04019) proves the mechanism works (weeks→hours); no production-ready open-source platform exists yet. Build on Dreadnode SDK: natural-language objective intake → automated attack/transform/scorer orchestration → structured report. Security testing CI integration is immediate commercial use case.
 
 ---
 
@@ -1182,8 +1232,13 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [April 26]: NVIDIA V4-Pro on GB200 NVL72 benchmark published: >150 tok/sec/user. GB300/Blackwell Ultra: ~3,500 tok/sec aggregate. NVIDIA hosted endpoints (build.nvidia.com) live for V4 prototyping without GPU hardware.
 - [April 27]: ICLR 2026 MemAgents workshop (Memory for LLM-Based Agentic Systems) running today. Organizing thesis confirmed as research community consensus: "the limiting factor is increasingly not raw model capability but memory." Aligns with KB pattern established April 9 (In-Place TTT, ByteRover tiered memory). Memory architecture is now the dominant research investment axis in agent systems.
 - [April 27]: UniRoute (Google, ICLR 2026, arXiv:2502.08773) introduces dynamic LLM routing that generalizes to unseen models at test time via feature-vector model representations. Prior routing work assumed fixed model pools; UniRoute handles dynamic pools. Validated across 30+ unseen LLMs with theoretical guarantees. Relevant as open-weight model release cadence accelerates.
+- [May 5]: Anthropic finance agents — 10 reference architectures make skills+connectors+subagents the explicit template for vertical agent deployment. Each layer has distinct ownership, update cadence, and testing surface. Moody's MCP native app is the enterprise data vendor → AI connector pattern at scale. MS365 cross-app context is the first production cross-application agent session. Repeatable pattern for all professional verticals.
+- [May 5]: MolmoAct2 (AI2, arXiv:2605.02881) — open action reasoning model beats Physical Intelligence's π0.5 on all evaluated tasks. Flow-matching continuous action expert + VLM backbone via per-layer KV conditioning is the current frontier architecture for physical AI. Full open release (weights + code + data + tokenizer) closes the proprietary/open gap in embodied AI. Spatial VLM + flow matching is the architecture to study for any embodied or tool-using agent with tight reasoning-action coupling requirements.
+- [May 5]: 1M exposed AI services scan (Hacker News / GuardianMSSP) documents deployment security crisis: 31% unauthenticated Ollama servers, exposed agent management platforms (n8n, Flowise), plaintext API keys in production deployments. AI deployment velocity significantly exceeds security baseline practice. Ollama's default-unauthenticated configuration is the primary exposure vector.
+- [May 5]: Automated agentic red teaming demonstrated (Dreadnode, arXiv:2605.04019) — natural-language objective → autonomous attack workflow composition (45+ attacks, 450+ transforms, 130+ scorers) → structured report. Weeks of manual red teaming compressed to hours. Multi-agent pipeline red teaming specifically enabled. No production-ready open platform yet; Dreadnode SDK available.
+- [May 6]: Gemma 4 MTP Drafters — shared-KV speculative decoding delivers 3× speedup at batch 1 with zero quality loss, Apache 2.0, drop-in for vLLM/SGLang/Ollama/transformers/MLX. Key mechanism: draft head reads target model's activations + shares KV cache — near-zero additional cost per draft token. Failure modes: MoE at batch 1 (expert routing overhead), high-temperature sampling (low acceptance), out-of-distribution content. This is the production default for Gemma 4 inference; pattern will propagate to other model families.
 
-*Last updated: April 27, 2026*
+*Last updated: May 6, 2026*
 
 ---
 
