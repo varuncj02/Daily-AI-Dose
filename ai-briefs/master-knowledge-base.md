@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: May 6, 2026 (v11 — Anthropic finance agents reveal skills+connectors+subagents as the repeatable vertical agent template; Gemma 4 MTP Drafters: 3× speedup via shared-KV speculative decoding, Apache 2.0, drop-in for vLLM/SGLang/Ollama; MolmoAct2: open action reasoning model beats π0.5, flow-matching + VLM backbone with per-layer KV conditioning; 1M exposed AI services scan documents deployment security crisis; agentic red teaming agent compresses weeks→hours)*
+*Last updated: May 7, 2026 (v12 — cotomi Act: first browser agent to beat WebArena human baseline (80.4% vs 78.2%) via verbal-diff history compression + behavior-to-knowledge pipeline; ARIS: cross-model adversarial review (executor Claude + reviewer GPT) as correct architecture for reliable long-horizon outputs; MAGE: shadow memory for safeguarding agents against long-horizon threats; Anthropic-SpaceX deal adds 300MW/220K GPUs to capacity, Claude Code rate limits doubled; EU AI Act omnibus deal delays high-risk compliance to Dec 2027)*
 
 ---
 
@@ -104,6 +104,30 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
   - Neuroscience-inspired memory architectures — gated and bounded memory (ICLR CraniMem paper)
   - Multi-session memory persistence: how agents build durable knowledge across separate deployment sessions
 - **Emerging gap:** No standardized memory benchmark for multi-session agents exists. The workshop's production of such a benchmark (analogous to SWE-bench for coding) would be a high-value artifact.
+
+### Verbal-Diff History Compression (NEW — May 7, 2026)
+- **Source:** cotomi Act (NEC, arXiv:2605.03231)
+- **Problem it solves:** Multi-step browser/desktop agents accumulate raw action logs at O(N) context cost — 400-2000 tokens per step. At 50-step tasks, 60-80% of the context window is consumed by history, crowding out working memory needed for planning.
+- **Mechanism:** Every N steps, compress raw action history into a verbal diff — a semantic description of *what changed in world-state and why*, not a record of *what UI elements were clicked*. A 20-action history that costs ~8K tokens as raw log is representable as a ~400-500 token verbal diff without planning quality loss.
+- **Implementation:** A small model (7B) running as a compressor after every N steps; produces verbal_diff(history[t-N:t]). Total overhead ~1% of main model cost.
+- **Empirical result:** cotomi Act achieves 80.4% on WebArena 179-task human-eval subset (beats 78.2% human baseline) — the first browser agent to do so — with this technique as the primary differentiator over raw logging.
+- **Key insight:** Action history needs to preserve semantic content (what changed in the world-state) not syntactic content (the sequence of UI interactions). This is the same insight as the orchestrator-subagent summary compression pattern (April 13) but applied to single-agent multi-step execution.
+- **Build implication:** Adopt immediately as default for any browser or desktop agent. Raw action logging is now the demonstrably wrong baseline.
+
+### Behavioral Learning Pipeline (NEW — May 7, 2026)
+- **Source:** cotomi Act (NEC, arXiv:2605.03231)
+- **Pattern:** Passive observation pipeline watches the user's normal browser workflow → abstracts recurring workflows into a task board + organizational conventions into a wiki → both artifacts live in a shared workspace editable by user and agent → agent reads workspace before each session.
+- **Key property:** Agent accuracy improves monotonically as behavioral data accumulates, at zero additional engineering cost to the operator.
+- **Relationship to existing memory approaches:** This is the *procedural memory* tier in the memory architecture (encoding *how tasks are done* in this organization), populated passively rather than through explicit knowledge engineering. Extends the KB's 5-tier memory architecture with a passive acquisition channel.
+- **Generalization:** Any AI tool used repeatedly in an organizational environment is accumulating latent procedural knowledge that is currently lost between sessions. Behavioral pipelines that externalize this knowledge into reusable artifacts are the alternative to expensive organizational knowledge engineering.
+
+### Shadow Memory for Agent Security (NEW — May 7, 2026)
+- **Source:** MAGE (arXiv:2605.03228)
+- **The threat class:** Long-horizon attacks that exploit extended user-agent-environment interactions to pursue objectives malicious in aggregate but plausible at each individual step. Standard safety guardrails that evaluate individual actions cannot detect this class.
+- **Mechanism:** Maintain a parallel "shadow memory" optimized for safety (retaining safety-critical context) alongside the task memory optimized for performance. Before each pending action, query shadow memory to assess whether the pending action is consistent with the originally sanctioned task scope. Block or escalate if inconsistency is detected.
+- **Analogy:** Shadow stack in systems security — a separate execution stack maintained by the OS that the application cannot modify, used to detect control-flow hijacking. MAGE applies the same pattern to agent goal drift.
+- **Deployment:** No production implementation in major frameworks yet (expected within 6 months). Mechanism is simple enough to implement manually as a wrapper on any agent's tool executor.
+- **Build implication:** Watch. For agents with access to sensitive data or irreversible actions, prototyping a shadow memory layer is a meaningful immediate security investment.
 
 ---
 
@@ -288,6 +312,20 @@ Three agent interface paradigms ranked by reliability and setup cost:
 [Action / Output]
 ```
 
+### Cross-Model Adversarial Review Pattern (NEW — May 7, 2026)
+- **Source:** ARIS (arXiv:2605.03042, Shanghai Jiao Tong University)
+- **Core claim:** Same-model self-review is stochastic (reviewer has correlated biases with executor → systematically ratifies the same errors). Cross-family adversarial review is genuinely adversarial (reviewer from different model family has independent failure modes → catches errors executor cannot self-detect).
+- **Implementation:** Executor model (Claude) drives forward progress → at defined checkpoints, reviewer from different family (GPT) audits intermediate artifacts → revision request if issues found → n rounds of adversarial review → assurance layer verifies final claims.
+- **The assurance layer:** Three-stage claim verification:
+  1. Integrity check: does stated procedure match actual execution?
+  2. Result-to-claim mapping: every factual/quantitative claim must have an evidence pointer
+  3. Claim auditing: cross-check output against claim ledger + raw evidence; catch claims rendered inaccurate by subsequent evidence
+- **The primary failure mode addressed:** Plausible-but-unsupported claims silently inherited from the executor's framing in long-horizon autonomous workflows. Not hallucination (obvious fabrication); the subtler case of appropriate-sounding claims with insufficient evidential support.
+- **When to apply:** Any workflow where acceptable silent-failure rate is low — legal drafting, financial analysis, research synthesis, compliance documentation, code audit reports.
+- **Cost:** Roughly doubles LLM cost. Mitigation: cheap reviewer model at intermediate checkpoints; expensive reviewer only at final assurance.
+- **Open source:** ARIS harness is Markdown-skill-based, framework-agnostic. Works with Claude Code / Codex / any LLM agent.
+- **Build implication:** Adopt as default for high-stakes outputs. Even a single round of cross-family review at final output provides meaningful error detection at minimal overhead.
+
 ### Parallel Multi-Agent Pattern (Emerging Standard)
 - **Cursor 3 (April 2026):** Agents Window enables parallel task execution with cloud orchestration
 - Pattern: Orchestrator decomposes task → spawns parallel sub-agents → collects results → synthesizes
@@ -441,6 +479,8 @@ Three agent interface paradigms ranked by reliability and setup cost:
 | GPQA Diamond | Expert science reasoning | — | **Claude Opus 4.7: 94.2%** | |
 | XBOW visual-acuity | Visual precision | — | **Claude Opus 4.7: 98.5%** (was 54.5% on Opus 4.6) | |
 | **APEX-Agents-AA** | **Long-horizon professional tasks** (banking, consulting, law) | — | **Gemini 3 Flash (Thinking=High): 24.0%** | **NEW — 75%+ failure at frontier on professional work** |
+| WebArena (179-task human eval) | Browser task completion (controlled env) | 78.2% | **cotomi Act 80.4%** (May 2026) | First agent to exceed human baseline; verbal-diff compression key mechanism |
+| ClawBench | Browser tasks on 144 live production sites | — | Frontier best: 33.3% | 47-point gap vs WebArena = sandbox-vs-production deployment gap |
 
 ### Current Benchmarks (April 25, 2026 Update)
 - **SWE-bench Verified:** GPT-5.4 Pro 88.3%; **Claude Opus 4.7 87.6%; DeepSeek V4-Pro 80.6% (open weight)**
@@ -977,6 +1017,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 35. **Speculative decoding benchmark suite for open models (NEW May 6):** With Gemma 4 MTP drafters live and the pattern expected to propagate to Llama 4, Qwen3, Mistral 3.5, no standardized benchmark for measuring acceptance rates across workload types (creative, factual, code, math, structured output) across model families exists. Public leaderboard would immediately serve inference engine community.
 36. **Agent deployment security scanner (NEW May 5):** Automated scanner that checks a deployed agent stack for: unauthenticated endpoints, API key exposure, missing rate limiting, unvalidated tool call inputs, absent audit logging. Produces prioritized remediation checklist. 1M exposed services scan documents demand scale; tooling doesn't exist.
 37. **Agentic red teaming automation platform (NEW May 5):** Dreadnode paper (arXiv:2605.04019) proves the mechanism works (weeks→hours); no production-ready open-source platform exists yet. Build on Dreadnode SDK: natural-language objective intake → automated attack/transform/scorer orchestration → structured report. Security testing CI integration is immediate commercial use case.
+38. **Verbal-diff history compression library with benchmark suite (NEW May 7):** No open-source library implementing verbal-diff-based history compression with benchmark results across WebArena, BrowserArena, ClawBench. A maintained library with public leaderboard comparing compression strategies would be immediately citable. First-mover in a space receiving significant research attention.
+39. **Cross-family adversarial review API (NEW May 7):** ARIS is a research harness; no production API exists. A service wrapping two frontier models from different families (Claude executor + GPT reviewer, or configurable), exposing a clean review API (send document → annotated version with flagged claims + evidence gaps), with aggregate metrics dashboard. Target customers: legal tech, financial analysis automation, AI-assisted research. API contract is simple; value is execution + reliability track record.
+40. **Shadow memory security layer for production agent frameworks (NEW May 7):** MAGE mechanism (arXiv:2605.03228) has no open-source implementation in major frameworks (LangGraph, OpenAI Agents SDK, LlamaIndex Agents, ADK). A drop-in wrapper maintaining parallel safety memory + risk assessor before each tool call would fill the most immediate production agent security gap. Target: any team running agents with access to sensitive data or irreversible actions.
 
 ---
 
@@ -1037,6 +1080,20 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - **Interpretation:** AI is eliminating the on-ramp, not the expert tier. Senior engineers are more productive with AI; entry-level slots are being reduced before being filled.
 - **Key nuance:** Effect is concentrated in the youngest workers, not general workforce. Senior roles growing in productivity. Mid-career roles largely unaffected so far.
 - **Connection to prior AI labor data (April 9):** Q1 2026 saw 40% YoY jump in tech layoffs; 25% attributed to AI in March. Stanford Index adds the age-stratified view: these layoffs are disproportionately hitting entry-level.
+
+---
+
+## AI Regulation (NEW — May 7, 2026)
+
+### EU AI Act Omnibus — Compliance Timeline Update (May 7, 2026)
+- **Political agreement reached May 7** between EU Parliament and Council on simplification measures + deadline extensions.
+- **High-risk AI systems** (biometrics, critical infrastructure, education, employment, law enforcement, border management): Compliance moved to **December 2, 2027** (was August 2, 2026 — 16-month extension).
+- **AI systems as safety components** (EU sectoral legislation): Extended to **August 2, 2028**.
+- **Watermarking obligations**: December 2, 2026 (before the previous February 2027 date).
+- **New prohibition**: AI systems generating non-consensual intimate imagery ("nudifier apps").
+- **Regulatory sandboxes**: From 2028 for supervised real-world testing.
+- **Builder implication (non-EU-regulated verticals):** August 2, 2026 deadline that was tracking as a near-term constraint has been removed. Compliance roadmap items moved to 2027-2028 planning horizon. US-based builders targeting EU enterprise sales: build compliance architecture into 2027 roadmap rather than 2026 sprint.
+- **Builder implication (EU-regulated sectors — healthcare, finance, law enforcement):** December 2027 is the new drop-dead date for high-risk system compliance. 18 months to design and implement.
 
 ---
 
@@ -1237,8 +1294,15 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [May 5]: 1M exposed AI services scan (Hacker News / GuardianMSSP) documents deployment security crisis: 31% unauthenticated Ollama servers, exposed agent management platforms (n8n, Flowise), plaintext API keys in production deployments. AI deployment velocity significantly exceeds security baseline practice. Ollama's default-unauthenticated configuration is the primary exposure vector.
 - [May 5]: Automated agentic red teaming demonstrated (Dreadnode, arXiv:2605.04019) — natural-language objective → autonomous attack workflow composition (45+ attacks, 450+ transforms, 130+ scorers) → structured report. Weeks of manual red teaming compressed to hours. Multi-agent pipeline red teaming specifically enabled. No production-ready open platform yet; Dreadnode SDK available.
 - [May 6]: Gemma 4 MTP Drafters — shared-KV speculative decoding delivers 3× speedup at batch 1 with zero quality loss, Apache 2.0, drop-in for vLLM/SGLang/Ollama/transformers/MLX. Key mechanism: draft head reads target model's activations + shares KV cache — near-zero additional cost per draft token. Failure modes: MoE at batch 1 (expert routing overhead), high-temperature sampling (low acceptance), out-of-distribution content. This is the production default for Gemma 4 inference; pattern will propagate to other model families.
+- [May 7]: cotomi Act (NEC, arXiv:2605.03231) — first browser agent to exceed WebArena human baseline: 80.4% vs 78.2% human. Key mechanism: verbal-diff history compression encodes action history as semantic state-change descriptions (~10-16× token reduction vs raw logging) + best-of-N action selection at decision points. Behavior-to-knowledge pipeline passively converts user browsing into agent-accessible organizational knowledge (task board + wiki). Accuracy improves monotonically as behavioral data accumulates. Verbal-diff compression is the correct default for any multi-step browser/desktop agent; raw action history logging is now the wrong default.
+- [May 7]: ARIS (arXiv:2605.03042) — formalizes cross-model adversarial collaboration as the correct architecture for reliable long-horizon research outputs. Core claim: same-model self-review = stochastic self-check (correlated biases); cross-family adversarial review = genuinely adversarial check (independent failure modes). Executor (Claude) + reviewer (different family: GPT) + 3-stage assurance layer (integrity check → result-to-claim mapping → claim auditing). Key failure mode addressed: plausible-but-unsupported claims silently inherited in long-horizon autonomous workflows. Open-source harness. Cross-model adversarial review is now a named, validated pattern for any workflow where the acceptable silent-failure rate is low.
+- [May 7]: MAGE (arXiv:2605.03228) — shadow memory as defensive mechanism against long-horizon agent threats. Mechanism borrowed from "shadow stack" in systems security: maintain a dedicated safety-focused memory alongside the task memory; safety memory retains safety-critical context across full execution trajectory; risk assessor queries shadow memory before each pending action. Long-horizon threats exploit the gap between individually-plausible actions and collectively-malicious trajectories; shadow memory makes trajectory-level goal drift detectable at each step. Substantially outperforms existing defenses on diverse long-horizon threat scenarios.
+- [May 7]: Anthropic-SpaceX compute deal — 300MW / 220,000+ NVIDIA GPUs at Colossus 1 Memphis campus added to Anthropic serving infrastructure within month. Immediate consequence: Claude Code 5-hour rate limits doubled for Pro/Max/Team/Enterprise; peak-hours reduction removed for Pro/Max; Claude Opus API rate limits increased. Constraint for agentic workflow design shifts from rate limits to context management and cost. Orbital compute (multi-gigawatt in LEO) expressed as future intent, not present engineering.
+- [May 7]: EU AI Act omnibus political agreement reached — high-risk AI compliance deadline moved from August 2, 2026 to December 2, 2027 (16-month extension); safety-component systems extended to August 2, 2028; watermarking obligations moved to December 2, 2026. New prohibition: non-consensual intimate AI imagery. Regulatory sandboxes from 2028. For non-EU-sector builders: compliance planning horizon has extended; no current August 2026 emergency sprint required.
+- [May 7]: GPT-5.5 Instant as new ChatGPT default (May 5) — 52.5% fewer hallucinations on high-stakes prompts (internal eval, medicine/law/finance). API: `chat-latest` routes to GPT-5.5 Instant. No architecture disclosures; framed as post-training refinement. GPT-5.3 Instant available 3 more months. Incremental improvement, not architectural change.
+- [May 7]: ClawBench real-world gap confirmed — best frontier browser agents pass 33.3% of live production web tasks (154 tasks, 144 real sites) vs 80.4% on controlled WebArena. The 47-point gap between sandbox benchmark and real production performance quantifies the deployment readiness gap for browser agents. WebArena performance is necessary but insufficient evidence for production deployment readiness.
 
-*Last updated: May 6, 2026*
+*Last updated: May 7, 2026*
 
 ---
 
