@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: May 7, 2026 (v12 — cotomi Act: first browser agent to beat WebArena human baseline (80.4% vs 78.2%) via verbal-diff history compression + behavior-to-knowledge pipeline; ARIS: cross-model adversarial review (executor Claude + reviewer GPT) as correct architecture for reliable long-horizon outputs; MAGE: shadow memory for safeguarding agents against long-horizon threats; Anthropic-SpaceX deal adds 300MW/220K GPUs to capacity, Claude Code rate limits doubled; EU AI Act omnibus deal delays high-risk compliance to Dec 2027)*
+*Last updated: May 20, 2026 (v15 — Google I/O 2026: Gemini 3.5 Flash leads frontier on MCP Atlas (83.6%); Flash tier beats Pro tier on agentic benchmarks; Antigravity 2.0 five-surface agent platform + SDK + Managed Agents API; WebMCP web-standard for browser-side tool endpoints; LiteRT-LM MTP 2.2x + session persistence + Thinking Mode for on-device agents; Gemini Spark 24/7 cloud-VM agent)*
 
 ---
 
@@ -129,6 +129,25 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Deployment:** No production implementation in major frameworks yet (expected within 6 months). Mechanism is simple enough to implement manually as a wrapper on any agent's tool executor.
 - **Build implication:** Watch. For agents with access to sensitive data or irreversible actions, prototyping a shadow memory layer is a meaningful immediate security investment.
 
+### Dreaming — Scheduled Memory Consolidation for Managed Agents (NEW — May 11, 2026)
+- **Source:** Anthropic Claude Managed Agents, announced Code with Claude SF, May 6, 2026
+- **Production evidence:** Harvey (legal AI) reported 6× task completion rate improvement after enabling dreaming.
+- **Problem it solves:** The two bad options in long-running agent memory — truncate (no improvement over time) or accumulate (context floods, signal-to-noise collapses) — are both defeated by periodic distillation. Dreaming is the third path: scheduled consolidation.
+- **Mechanism:** A scheduled Claude instance receives the **full** session history in a single context window (not constrained by the active agent's context budget). Its task: review all episodes → merge duplicates → remove outdated entries → extract recurring patterns (mistakes, preferences, strategies) → write two artifact types:
+  1. **Playbooks:** Reusable structured notes for recurring situations ("When client X provides data in Excel, normalize dates to ISO 8601 before analysis — they flagged this 3 times")
+  2. **Standing instructions:** Persistent preferences and organizational facts prepended to future session system prompts
+- **Key advantage over active agent:** Consolidation model sees sessions 1–N simultaneously; active agent in session N sees only recent sessions. Patterns invisible to the active agent (slowly emerging trends, knowledge from early sessions, contradictions across sessions) become visible to the consolidation process.
+- **Weight modification:** Deliberately absent. Fine-tuning on session history introduces distributional drift, destroys the base model's general capabilities, and is opaque. Playbooks are auditable, editable, transferable, and reversible.
+- **Control:** Human review gate (operator reviews proposed changes before application) is the correct default for initial deployment. Switch to automatic after validating playbook quality over 10–15 consolidation cycles.
+- **Relationship to memory architecture:** First production implementation of the consolidation link between the raw episodic tier and the stable procedural tier, as specified by the ICLR MemAgents workshop (April 27, 2026) consensus architecture.
+- **Failure modes:** Consolidation hallucination (over-generalizing from few examples → human review gate mitigates); knowledge staleness (playbooks become inaccurate as conventions change → timestamp entries, periodic operator review); security (playbooks may contain sensitive org info → secure backing store at appropriate classification level).
+- **Build implication:** Adopt for Claude Managed Agents. For other platforms: implement manually — after each session, run a consolidation LLM call with full history → write output as structured plain text → prepend to future system prompts.
+
+### Governed Collaborative Memory (arXiv:2605.04264 — May 5, 2026)
+- **The "artificial selection" framing:** Memory entries that help agents succeed should be retained and promoted to shared knowledge; those that don't should be pruned. This is the conceptually precise description of what Dreaming implements.
+- **Layered architecture proposed:** Agent-local memory → shared institutional memory → archive memory → project-continuity memory, with provenance and version lineage making the selection process inspectable.
+- **Relationship to Dreaming:** Governed Collaborative Memory is the academic specification; Dreaming is the first commercial production implementation. The paper's provenance and version lineage features (not yet in Dreaming) represent the next generation of this mechanism.
+
 ---
 
 ## Retrieval & RAG
@@ -256,16 +275,30 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Competitive status:** Both Claude (Claude Computer Use, 2025) and Codex (April 2026) now offer computer use. The coding agent market has reached surface-level capability parity on computer use, memory, and web workflows.
 - **Key gap remaining:** Claude Code Routines (server-side durable execution, saga/event-sourcing pattern) has no Codex equivalent as of April 2026. Codex remains session-local; Claude Code is cloud-durable.
 
-### Interface Paradigm Decision Framework (NEW — April 2026)
-Three agent interface paradigms ranked by reliability and setup cost:
+### WebMCP: Web Pages as Browser-Side Tool Endpoints (NEW — May 19, 2026)
+- **Source:** Google I/O 2026 + Chrome developer docs. Origin trial: Chrome 149. Microsoft Edge 147 adopted March 2026.
+- **What it is:** Proposed open web standard that lets any website expose structured tool definitions — JavaScript functions and annotated HTML forms — that browser-based AI agents can discover and call natively.
+- **Two APIs:**
+  1. **Imperative API:** Register JS functions as typed tools. Agent calls the function; browser sandboxes execution.
+  2. **Declarative API:** Add WebMCP annotations to existing `<form>` elements. Browser generates tool definitions automatically — zero new JS required.
+- **Key design properties:** Browser enforces same-origin policy + existing permission model. Agents can't call tools on pages the user hasn't navigated to. No raw credential passing — browser sandbox is the trust boundary.
+- **Relationship to MCP servers:** WebMCP covers the existing web surface (sites that will never run a process-based MCP server). Traditional MCP servers cover private data sources, authenticated enterprise systems. Complementary, not competing.
+- **Adoption significance:** Edge 147 (March 2026) + Chrome 149 (May 2026) = two major browsers before formal standard publication. Suggests cross-browser coordination pre-announced. Multi-browser momentum is what distinguishes a standard from a vendor extension.
+- **Builder implication (agent developers):** Monitor Chrome 149 origin trial. Agents that detect and use WebMCP tools will have a measurable reliability advantage over DOM-scraping/screenshot agents for those surfaces.
+- **Builder implication (web developers):** Adding WebMCP Declarative API annotations to existing forms is the lowest-cost path to making your site first-class for agent interactions.
+- **Update to Interface Paradigm decision framework:** Add WebMCP as a fourth paradigm — see table below.
+
+### Interface Paradigm Decision Framework (Updated — May 2026)
+Four agent interface paradigms ranked by reliability and setup cost:
 
 | Paradigm | Reliability | Speed | Setup cost | Use when |
 |---|---|---|---|---|
 | Tool calling (structured schema) | Highest | Fastest | Medium (need API) | Target app has documented API |
 | MCP | High | Fast | Low (if server exists) | MCP server available; or worth building for high-volume |
-| Computer use | Lowest | Slowest | Zero | No API/MCP exists; low-frequency one-off tasks |
+| WebMCP | High | Fast | Very low (annotations) | Web page with forms; Chrome/Edge + origin trial |
+| Computer use | Lowest | Slowest | Zero | No API/MCP/WebMCP exists; low-frequency one-off tasks |
 
-**Decision rule:** Computer use is an integration bootstrap tool, not a production automation pattern. Use it to prototype new app integrations or handle true one-offs. When volume crosses ~100 runs/day, build the MCP server.
+**Decision rule:** Computer use is an integration bootstrap tool, not a production automation pattern. Use it to prototype new app integrations or handle true one-offs. When volume crosses ~100 runs/day, build the MCP server or add WebMCP annotations.
 
 **Emerging pattern (not yet productized):** Computer use → MCP compiler. Observe reliable computer use sessions, extract action sequences, export as MCP server. Collapses integration time from weeks to hours. No tool does this automatically yet.
 
@@ -311,6 +344,22 @@ Three agent interface paradigms ranked by reliability and setup cost:
      ↓
 [Action / Output]
 ```
+
+### Outcomes — Clean-Context Evaluator Loop as Managed Primitive (NEW — May 11, 2026)
+- **Source:** Anthropic Claude Managed Agents, Code with Claude SF, May 6, 2026. Public beta.
+- **Mechanism:** A separate Claude instance evaluates the agent's output against an operator-defined rubric in a clean context window that has **no access to** the agent's reasoning trajectory, tool call sequence, or intermediate steps. Input to evaluator: final output + rubric YAML only. If fail: grader returns specific change requests → agent revises → loop continues until rubric passes or iteration limit.
+- **Internal benchmark:** Up to 10 percentage point improvement in task success rate; largest gains on hardest tasks.
+- **Why context isolation matters:** A grader that sees the agent's reasoning is susceptible to sycophancy (ratifies the reasoning it read, rather than evaluating the output independently). Context isolation enforces evaluator independence — the grader cannot be contaminated by the generator's framing. Same principle as ARIS cross-model adversarial review (May 7 brief), implemented via context isolation rather than cross-model separation.
+- **Relationship to ARIS:** ARIS uses a different model family for independence; Outcomes uses context isolation for independence. Both attack the same sycophancy failure mode. Context isolation is cheaper and simpler; cross-family review provides stronger independence guarantees.
+- **Build implication:** Adopt as default quality gate for any workflow where the cost of a wrong output exceeds the cost of an evaluation call. Implement manually on other platforms: evaluation LLM call with only the output + rubric, not the conversation history.
+- **API access:** `managed-agents-2026-04-01` beta header on Claude Platform API.
+
+### Managed Agents Multiagent Orchestration + Webhooks (NEW — May 11, 2026)
+- **Source:** Anthropic Claude Managed Agents, Code with Claude SF, May 6, 2026. Public beta.
+- **Multiagent Orchestration mechanism:** Lead agent decomposes task → delegates to specialist subagents (each with own model, system prompt, tools) → specialists work in parallel on a **shared filesystem** → specialist outputs contribute to lead agent context as filesystem artifacts (not as raw context injection). Lead agent synthesizes from artifacts, not raw specialist context.
+- **Architecture:** This is the File-as-Bus coordination pattern (AiScientist, April 2026) as a managed infrastructure feature. The shared filesystem is the coordination medium; no agent holds another agent's full context.
+- **Webhooks:** Event-driven callbacks on session and vault lifecycle events. Converts Managed Agents from synchronous watched sessions to asynchronous wired pipelines.
+- **Together with Outcomes + Dreaming:** These three primitives together address the three most commonly cited production agent failure modes: context degradation over sessions (Dreaming), undetected output quality failures (Outcomes), and serial task bottlenecks (Multiagent Orchestration). All three are now API configuration, not engineering projects.
 
 ### Cross-Model Adversarial Review Pattern (NEW — May 7, 2026)
 - **Source:** ARIS (arXiv:2605.03042, Shanghai Jiao Tong University)
@@ -360,17 +409,41 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **Multi-agent features:** Context consolidation (30–50% token reduction on deep chains), configurable tool error handling
 - **Design implication:** Framework consolidation reduces vendor lock-in for agents; interop becomes standard
 
-### Claude Managed Agents (April 8, 2026 — Public Beta)
+### Claude Managed Agents (Updated — May 11, 2026)
 - Fully managed cloud infrastructure for long-running autonomous agents on Claude Platform
 - **Session persistence:** Multi-hour sessions survive client disconnection
-- **Multi-agent spawning:** Agents can spawn and coordinate other agents (research preview)
-- **Built-in tools:** Secure file/code/web execution with session-level isolation
-- **Observability:** Session tracing + debugging via Claude Console; inspect every tool call, decision, failure
 - **Pricing:** Standard Claude tokens + $0.08/session-hour runtime fee
-- **Early customers:** Notion, Rakuten, Asana
-- **Production signal:** Removes weeks of infrastructure work; shifts bottleneck from "can Claude be an agent" to "how do we run production agents at scale"
+- **Early customers:** Notion, Rakuten, Asana, Harvey
+- **May 6, 2026 (Code with Claude) — Three new production primitives (all public beta via `managed-agents-2026-04-01` beta header):**
+  1. **Dreaming:** Scheduled memory consolidation — reviews session history → writes playbooks and standing instructions → compounding improvement over sessions. Harvey 6× task completion improvement. Research preview.
+  2. **Outcomes:** Clean-context evaluator loop — separate Claude instance grades output against operator rubric with no access to agent reasoning trajectory. Up to 10pp task success improvement on hardest tasks.
+  3. **Multiagent Orchestration + Webhooks:** Lead agent delegates to specialist subagents via shared filesystem. Webhooks convert synchronous sessions to async event-driven pipelines.
+- **Together, these three primitives attack:** session memory degradation (Dreaming), undetected quality failures (Outcomes), and serial task bottlenecks (Orchestration).
+- **Also shipped May 6:** Orbit — proactive AI assistant for Cowork connecting Gmail, Slack, GitHub, Figma, Calendar, Drive; delivers personalized briefings without prompting. Gradual rollout, no published architecture yet. Signals "proactive AI" as next product category.
+- **Claude Security (public beta, May 4, 2026):** Code vulnerability scanning with Opus 4.7. Available to Enterprise; Team/Max coming soon. Reasons like a security researcher (traces data flows, flags interaction-dependent vulnerabilities). Export to CSV/Markdown; webhooks to Slack/Jira. Access: claude.ai/security.
 
-### Gemini Enterprise Agent Platform — Google Cloud (NEW — April 22, 2026, Google Cloud Next 2026)
+### Antigravity 2.0 + Managed Agents API — Google I/O 2026 (NEW — May 19, 2026)
+- **What shipped:** Five-surface agent platform: (1) Antigravity 2.0 standalone desktop app for orchestrating agent cohorts — not just coding, but general-purpose agent management for any user; (2) Antigravity CLI (Go-based, stable GA, renaming from Gemini CLI) — cross-platform terminal sandboxing + credential masking + hardened Git policies; (3) **Antigravity SDK** (Python) — programmatic access to the same agent harness powering Google's internal products; compiled runtime binary ships with the package; co-optimized for Gemini 3.5 Flash; (4) **Managed Agents API** (Gemini API, GA) — single API call provisions a fully running agent with remote sandbox; zero infrastructure setup; (5) Enterprise Agent Platform — organizational-scale agent cohort deployment.
+- **The harness architecture (from Gemini Spark docs):**
+  1. **Goal persistence:** Agent state persists as cloud process even when client (phone/laptop) is offline.
+  2. **Task decomposition + subagent spawning:** Orchestrator spawns specialized subagents scoped to subtasks; subagents return summaries, not raw execution state.
+  3. **MCP runtime for tool calls:** Each connected app is an MCP server. Credentials never touch the language model — handled by MCP runtime in separate sandbox.
+  4. **Safety constraints:** Harness-level enforcement of confirmation gates for send/post/pay/delete actions — not model-level.
+  5. **Credential masking + terminal sandboxing:** CLI runs in sandboxed exec environment preventing credential exfiltration.
+- **Managed Agents API significance:** Single API call = fully provisioned agent + remote sandbox. Infrastructure equivalence: weeks of custom orchestration engineering reduced to one call. Direct competitor to Claude Managed Agents.
+- **Internal usage data:** Google processed 3 trillion tokens/day internally on Antigravity before I/O. 7x year-over-year growth in total tokens to 3.2 quadrillion/month.
+- **Build implication:** The "build your own agent loop" pattern is being displaced by "use a managed harness and configure behavior." Evaluate Antigravity SDK vs. Claude Managed Agents vs. custom stack against your task distribution. The harness handles goal persistence, tool routing, credential sandboxing, safety constraints — if your custom stack duplicates this, the maintenance burden is now optional.
+
+### Gemini Spark — 24/7 Background Agent (NEW — May 19, 2026)
+- **What it is:** Personal AI agent running on dedicated Google Cloud VMs per user — task continues even when phone/laptop is offline or turned off.
+- **Architecture:** Gemini 3.5 Flash + Antigravity 2.0 harness. Dedicated VMs (not in-process); task runs as persistent cloud process.
+- **Tool integration:** Each connected app (Gmail, Calendar, Docs, etc.) is an MCP server. Harness dispatches calls; language model never handles raw credentials.
+- **Triggers:** Time-based schedules, event triggers, manual. On trigger, harness resumes agent with current goal state.
+- **Safety gate:** Actions that send, post, pay, or delete require explicit human approval — enforced at harness level, not model level.
+- **Availability:** Trusted testers May 19; Beta to Google AI Ultra subscribers in US week of May 26.
+- **Architectural reference:** This is the deployment pattern for any 24/7 background agent system: cloud-hosted persistent process + trigger conditions + tool calls via authenticated sandbox + mandatory confirmation for irreversible actions. The architecture generalizes to any domain.
+
+### Gemini Enterprise Agent Platform — Google Cloud (UPDATED — Google Cloud Next April 22, Google I/O May 19)
 - **What launched:** Google retired the Vertex AI brand, replacing it with the Gemini Enterprise Agent Platform — a unified control plane for building, deploying, governing, and optimizing agents.
 - **Core new components:** (1) Agent Identity (SPIFFE-based cryptographic identity per agent — see Tool Use section), (2) A2A v1.2 with signed Agent Cards, (3) Agent Gateway (air traffic control layer).
 - **ADK v1.0 stable:** Agent Development Kit stable across Python, Go, Java, TypeScript. Previously only Python had guaranteed API stability. A2A v1.2 support natively included.
@@ -461,6 +534,32 @@ Three agent interface paradigms ranked by reliability and setup cost:
 
 ---
 
+### Shepherd: Git-Like Execution Trace for Meta-Agents (NEW — May 13, 2026)
+- **Source:** arXiv:2605.10913, Stanford (Christopher Manning group), May 11, 2026. Open-source.
+- **The missing primitive:** Current agent frameworks treat execution as a black box — a stream of events that either succeeds or fails. There is no "git bisect" for agent behavior: no way to fork from an intermediate state, replay from a divergence point, or explore counterfactual alternatives at runtime.
+- **Mechanism:** Two-layer architecture:
+  1. **Execution trace layer:** Every tool call, LLM response, filesystem write, and environment observation is recorded as a typed event with a content-addressed hash. Creates a Merkle-like DAG of agent state.
+  2. **Meta-agent layer:** A meta-agent is a function `(trace) → intervention`. Core operations mechanized in Lean. Meta-agents are composable (stack supervisors, reviewers, optimizers without coupling).
+- **Fork/replay primitives:** Fork any past state via COW filesystem snapshot + KV-cache checkpoint. Cost: ~200ms, 5× faster than Docker. KV-cache reuse on replay: >95%.
+- **Three demonstrated applications with benchmark numbers:**
+  1. **Runtime supervision:** Live supervisor watches execution trace in real time → intervenes on detected recoverable mistakes → pair coding 28.8%→54.7% on CooperBench
+  2. **Counterfactual meta-optimization:** Fork at decision junctions → branch exploration → commit best path → up to 11-point improvement on 4 benchmarks; 58% wall-clock reduction
+  3. **Tree-RL training:** Fork rollouts at selected turns → multiply trajectory diversity → TerminalBench-2: 34.2%→39.4%
+- **Relationship to Outcomes evaluator (May 11):** Outcomes evaluates *after* completion; Shepherd-style supervision intervenes *during* execution. Complementary: Outcomes catches fundamental failures post-hoc; Shepherd catches recoverable failures mid-execution.
+- **Why runtime supervision > post-hoc evaluation for recoverable failures:** Post-hoc evaluation can only trigger a full restart. Runtime supervision can inject a correction before the mistake propagates — turning a recoverable error into a successful execution without a full re-run.
+- **Relationship to MCTS:** Counterfactual meta-optimization is MCTS applied to full agent execution trees, not to token generation. The forking mechanism makes this computationally tractable at runtime.
+- **Failure modes:** Fork explosion (branch count grows geometrically without pruning policy); cache invalidation near fork start (lower KV reuse when forking early); storage scaling (trace DAG for >100-step tasks not characterized).
+- **Build implication:** Experiment → Adopt. Open-sourced; immediate experiment: implement live supervisor for your most failure-prone agent, compare pass rate vs. post-hoc evaluator. For Tree-RL training: fork at selected turns to multiply trajectory diversity at fraction of full re-run cost.
+
+### BoundaryRouter: Training-Free LLM/Agent Query Routing (NEW — May 13, 2026)
+- **Source:** arXiv:2605.07180, May 8, 2026
+- **Problem:** Many queries do not require full agent execution — LLM direct inference is sufficient and 60× faster. Routing between the two is hard without training data and fails under cold-start conditions.
+- **Mechanism:** Run both LLM and agent on a shared seed set (50-100 queries) → build compact experience memory of behavioral differences → at inference time, retrieve similar seed cases → rubric-guided reasoning decides whether query falls inside or outside LLM capability boundary.
+- **Results:** 60.6% inference time reduction vs. always-agent; 28.6% accuracy improvement vs. always-LLM; outperforms prompt-based routing +37.9%, retrieval-only routing +8.2%.
+- **RouteBench:** New benchmark with three routing scenarios: in-domain, paraphrased, out-of-domain. Key finding: in-domain routing is easiest; out-of-domain routing is the failure mode — experience memory built on one task distribution does not generalize perfectly to a different distribution.
+- **Build implication:** Implement for any agent system where a significant fraction of incoming queries are answerable by direct LLM inference. The seed set construction is the key engineering task — must represent the actual query distribution. Afternoon implementation, significant cost reduction.
+
+
 ## Agent Evaluation & Reliability
 
 ### Benchmark Landscape (April 20, 2026 Update)
@@ -475,7 +574,7 @@ Three agent interface paradigms ranked by reliability and setup cost:
 | ARC-AGI-3 | Interactive adaptation / rule-learning | 100% | Gemini 3.1 Pro 0.37%; Symbolica Agentica 36.08% | Program synthesis architecture dominant |
 | HLE | Expert-level multi-domain questions | — | Claude Opus 4.6 / Gemini 3.1 Pro >50% | Was 8.8% (o1, early 2025) |
 | CyberGym | Autonomous vulnerability reproduction | — | Mythos 83.1% | Security-specific |
-| MCP-Atlas | Multi-tool agentic workflows | — | **Claude Opus 4.7 leads GPT-5.4 by 9.2 points** (UPDATED) | Most important agentic proxy benchmark |
+| MCP-Atlas | Multi-tool agentic workflows | — | **Gemini 3.5 Flash 83.6%** leads Claude Opus 4.7 (79.1%) and GPT-5.5 (75.3%) — UPDATED May 19 | Flash tier beat Pro tier; critical benchmark for agent tool-use selection |
 | GPQA Diamond | Expert science reasoning | — | **Claude Opus 4.7: 94.2%** | |
 | XBOW visual-acuity | Visual precision | — | **Claude Opus 4.7: 98.5%** (was 54.5% on Opus 4.6) | |
 | **APEX-Agents-AA** | **Long-horizon professional tasks** (banking, consulting, law) | — | **Gemini 3 Flash (Thinking=High): 24.0%** | **NEW — 75%+ failure at frontier on professional work** |
@@ -487,7 +586,9 @@ Three agent interface paradigms ranked by reliability and setup cost:
 - **SWE-bench Pro:** Mythos 77.8% (restricted); Claude Opus 4.7 64.3%; GPT-5.5 58.6%; Kimi K2.6 58.6%; GLM-5.1 58.4%; GPT-5.4 57.7%
 - **Terminal-Bench 2.0 (April 25 state):** GPT-5.5 **82.7%** (new SOTA standard model); Claude Opus 4.7 65.4%; DeepSeek V4-Pro 67.9% (open weight leads Opus 4.7); GPT-5.4 ~72% (est)
 - **LiveCodeBench:** DeepSeek V4-Pro **93.5%** (new open-weight #1); Claude Opus 4.7 88.8%
-- **MCP-Atlas:** Claude Opus 4.7 77.3% leads GPT-5.4 (68.1%) — largest inter-model gap on any frontier benchmark
+- **MCP-Atlas (UPDATED May 19, 2026):** **Gemini 3.5 Flash 83.6%** leads Claude Opus 4.7 (79.1%) and GPT-5.5 (75.3%). A Flash-tier model now leads all Pro/flagship models on the most important agentic benchmark. Prior leader was Opus 4.7. This is the benchmark for multi-step tool-driven workflows — what production agents actually run. See "Flash Leads Pro on Agent Benchmarks" below.
+- **Terminal-Bench 2.1 (NEW — May 19, 2026):** GPT-5.5 78.2% (retains lead); Gemini 3.5 Flash **76.2%** (new #2); Gemini 3.1 Pro 70.3% (Flash leads Pro)
+- **Finance Agent v2 (NEW — May 19, 2026):** Gemini 3.5 Flash **57.9%** vs Gemini 3.1 Pro 43.0% — 14.9-point gap on financial document/workflow tasks; significant for finance vertical agents
 - **GPQA Diamond:** Claude Opus 4.7 94.2%; Gemini 3.1 Pro 94.3%; GPT-5.4 Pro 94.4%
 - **OSWorld-Verified (computer use):** GPT-5.5 78.7%; Claude Opus 4.7 78.0%; GPT-5.4 75.0%; Mythos Preview 79.6%
 - **GDPval (agentic knowledge work, 44 occupations):** GPT-5.5 **84.9%** (new #1)
@@ -553,6 +654,14 @@ Three agent interface paradigms ranked by reliability and setup cost:
   3. **"The Last Harness You'll Ever Build" (arXiv:2604.21003, April 22):** Two-level framework: (a) Harness Evolution Loop optimizes harness for one task; (b) Meta-Evolution Loop learns a harness-design protocol across diverse tasks — adapting to a new domain runs the protocol, not human engineering.
 - **Build implication:** Parameterize your harness as a versioned config object. Maintain a task suite. Run systematic flag variation. Treat harness as first-class engineering artifact with the same rigor as model selection.
 - **Competitive implication:** OpenAI Agents SDK (April 15) now provides first-class harness primitives. Research is automating harness design. The "custom harness as differentiator" window is narrowing — 12-18 month estimate before tooling commoditizes the common cases.
+
+### Flash Leads Pro on Agent Benchmarks — Tier Selection Inversion (NEW — May 19, 2026)
+- **Key finding:** Gemini 3.5 Flash outperforms Gemini 3.1 Pro on MCP Atlas (83.6% vs sub-79%), Terminal-Bench 2.1, GDPval-AA, and Finance Agent v2. Flash-tier model is now the *strongest publicly available* model on multi-step agentic and coding benchmarks.
+- **Why this is architecturally significant:** Prior assumption was "harder tasks → bigger model." The inversion shows execution benchmarks (multi-step tool-driven workflows) favor Flash-tier models trained specifically for agentic execution over Pro-tier models optimized for deep reasoning.
+- **Candidate mechanisms:** (1) Execution speed compounds in multi-step workflows — 4x faster generation accumulates advantage over 10+ tool-call steps; (2) Targeted post-training on agentic task distributions vs. reasoning benchmarks; (3) MCP Atlas is fundamentally about structured execution quality (valid tool calls, JSON output, multi-turn context management), not reasoning depth.
+- **Finance Agent v2 gap (14.9 points):** Largest gap; affects financial document agents and month-end/onboarding workflows. Macquarie Bank's piloted use case (100+ page document reasoning, low latency) is exactly this benchmark.
+- **Updated tier selection rule:** Benchmark your specific task distribution — don't assume Pro-tier wins. For reasoning-heavy single-step tasks: Pro/flagship. For multi-step agentic execution with tool calls: run your own MCP Atlas-style eval and let the numbers decide.
+- **Prediction:** Gemini 3.5 Pro (expected next month) will push the frontier further. The 3.5 Flash vs Pro comparison will then show whether this inversion persists or was temporary.
 
 ### APEX-Agents-AA: Professional Task Reliability Calibration (NEW — April 20, 2026)
 - **Benchmark:** Artificial Analysis implementation of APEX-Agents (Mercor, arXiv:2601.14242) — 452 tasks across investment banking, management consulting, corporate law
@@ -892,11 +1001,27 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 
 ## Local/Edge Deployment
 
-### Capability (April 2026)
+### LiteRT-LM: Complete Agentic Feature Set for On-Device Inference (Updated — May 19, 2026)
+- **Source:** Google Developers Blog, May 19, 2026; Apache 2.0 open-source
+- **Framework:** Production-proven, cross-platform. Underpins Chrome, ChromeOS, Pixel Watch, Google AI Edge Gallery. Now shipping to all developers.
+- **Performance (Gemma 4 E2B):** 52 tok/s decode on Android (GPU/OpenCL, Samsung S26 Ultra), 56 tok/s on iOS (Metal, iPhone 17 Pro), 76 tok/s on MacBook via WebGPU (M4 Max). Memory footprint: **607MB on Apple mobile CPU** for 2.58GB model (4:1 compression ratio).
+- **Multi-Token Prediction (MTP) speculative decoding — 2.2x speedup (NEW May 2026):**
+  - Architecture: MTP drafter runs on same hardware IP as primary model. Shared KV cache and activations in local memory — eliminates cross-IP synchronization latency that kills naive speculative decoding on constrained hardware.
+  - Enabled with 2 config lines. Zero quality degradation.
+  - Fail modes: Out-of-distribution content → lower acceptance rate. High temperature sampling → lower acceptance rate. MoE at batch 1 → expert routing overhead limits gains.
+- **Session save/restore — KV cache persistence (NEW May 2026):** Serialize full KV cache state to disk. Resume multi-turn conversations and agent workflows without re-prefilling. Eliminates O(N) prefill cost on session restart.
+- **Thinking Mode (NEW May 2026):** Scratchpad reasoning before action. Model uses internal CoT before committing to tool call. Configurable: stream reasoning to UI, or strip to save KV cache budget in multi-turn sessions.
+- **Constrained Decoding (NEW May 2026):** Strict JSON schema enforcement on final output. Tool call payloads are schema-valid by construction. Eliminates JSON parsing failures.
+- **Native function calling:** Full Gemma 4 function calling. Runtime pauses execution, returns structured tool-call request to application layer, resumes on tool result return.
+- **New platform APIs (NEW May 2026):** Swift API for iOS (native; performance parity with MLX on iPhone 17 Pro). JavaScript WebGPU API for browser inference (serverless, privacy-preserving; outperforms ONNX Runtime Web on Chrome/MacBook).
+- **Build implication:** The combination of MTP + session persistence + Thinking Mode + Constrained Decoding is the first complete on-device agentic runtime. For privacy-sensitive (healthcare, legal, finance for individuals) or offline domains: no infrastructure reason to use server inference. Gap: Gemma 4 E2B is a 2B model — significantly below frontier capability.
+
+### Capability (Updated — May 2026)
 - **Raspberry Pi 5:** Gemma 4 E2B at 7.6 tok/s with NPU acceleration
-- **Apple Silicon M5+:** 31 tok/s on Gemma 4 31B with macOS 26.2+ Neural Accelerator
+- **Apple Silicon M5+:** 31 tok/s on Gemma 4 31B with macOS 26.2+ Neural Accelerator; LiteRT-LM 56 tok/s on iPhone 17 Pro
+- **MacBook via WebGPU:** 76 tok/s on Gemma 4 E2B (LiteRT-LM JS API, M4 Max)
 - **Single H100:** Llama 4 Scout (17B active, 10M context)
-- **Edge multimodal agents:** Now technically feasible; software stack mostly unbuilt (opportunity)
+- **Edge multimodal agents:** Now technically feasible with full feature set (LiteRT-LM May 2026 update); software stack mostly unbuilt for specific verticals (opportunity)
 - **Edge embodied AI:** HY-Embodied opens frontier robot control on edge devices
 
 ---
@@ -990,6 +1115,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 8. **Agentic security scanning for SMBs (April 8):** Mythos pattern documented; GLM-5.1 capable of agentic code analysis; no accessible service below Glasswing enterprise partnership level
 9. **Dual-use AI capability advisory (April 8):** Regulatory/compliance gap between what frontier models can do (autonomous exploit generation) and what governance frameworks cover
 10. **Reasoning depth analyzer for agent pipelines (NEW April 9):** No tool that profiles sequential reasoning depth per LLM call, classifies tasks against the Depth Ceiling, and recommends where to inject explicit CoT. Theoretical basis now available (arXiv:2604.06427).
+11. **Execution benchmark-as-a-service for vertical domains (NEW May 20):** MCP Atlas and Terminal-Bench are general-purpose. Legal, finance, healthcare, operations teams need domain-specific execution benchmarks. A service providing 50-task vertical benchmarks + model comparison reports on demand fills the evaluation gap for teams that can't build this internally.
+12. **WebMCP annotation service (NEW May 20):** The WebMCP Declarative API requires annotations on HTML forms. Most sites won't add proactively. A service that analyzes existing web applications, generates WebMCP annotations, and delivers a patch/PR converts sites into first-class agent surfaces without requiring site developers to understand the standard.
+13. **LiteRT-LM vertical agent kit for privacy-sensitive domains (NEW May 20):** LiteRT-LM now has a complete on-device agentic feature set (MTP 2.2x, session persistence, Thinking Mode, Constrained Decoding, 607MB footprint). A packaged agent kit (LiteRT-LM + domain-fine-tuned Gemma 4 + pre-built tool set + local MCP server + session management UI) for healthcare, legal, or individual financial use — where data cannot leave device — is a direct match for the new capability envelope.
 11. **PTY-native tool execution in agent frameworks (NEW April 9):** tui-use fills the interactive terminal gap standalone, but no first-party integration exists in LangChain, LangGraph, CrewAI, or as an MCP server. Builders hitting the interactive CLI wall is a large underserved market.
 12. **AI billing intensity auditing for healthcare (NEW April 9):** AI scribes confirmed to increase coding intensity → billing inflation. Neither regulatory framework nor commercial tooling exists for automated detection/normalization. Insurers and providers both need it.
 13. **RAGEN-2 template collapse diagnostic tooling (NEW April 10):** Build analyzer that detects trajectory collapse in RL agent training pipelines, measures SNR, recommends filtering thresholds. Most teams training agents blind to whether they're learning genuine reasoning or spurious patterns.
@@ -1301,8 +1429,24 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [May 7]: EU AI Act omnibus political agreement reached — high-risk AI compliance deadline moved from August 2, 2026 to December 2, 2027 (16-month extension); safety-component systems extended to August 2, 2028; watermarking obligations moved to December 2, 2026. New prohibition: non-consensual intimate AI imagery. Regulatory sandboxes from 2028. For non-EU-sector builders: compliance planning horizon has extended; no current August 2026 emergency sprint required.
 - [May 7]: GPT-5.5 Instant as new ChatGPT default (May 5) — 52.5% fewer hallucinations on high-stakes prompts (internal eval, medicine/law/finance). API: `chat-latest` routes to GPT-5.5 Instant. No architecture disclosures; framed as post-training refinement. GPT-5.3 Instant available 3 more months. Incremental improvement, not architectural change.
 - [May 7]: ClawBench real-world gap confirmed — best frontier browser agents pass 33.3% of live production web tasks (154 tasks, 144 real sites) vs 80.4% on controlled WebArena. The 47-point gap between sandbox benchmark and real production performance quantifies the deployment readiness gap for browser agents. WebArena performance is necessary but insufficient evidence for production deployment readiness.
+- [May 11 — coverage gap May 6-8]: Anthropic Dreaming — first production implementation of multi-session agent memory consolidation as managed infrastructure primitive. Mechanism: scheduled consolidation process reviews full session history (not context-limited like active agent), writes playbooks (structured reusable knowledge) + standing instructions. Does not modify weights. Harvey legal AI: 6× task completion rate improvement. Closes the ICLR MemAgents workshop consensus gap. The playbook pattern is the correct long-term memory strategy for organizational agents with recurring task types.
+- [May 11 — coverage gap May 6-8]: Anthropic Outcomes — clean-context evaluator loop as first-class managed API primitive. Separate Claude instance grades output against operator rubric with zero access to agent reasoning trajectory. Context isolation enforces evaluator independence (same principle as ARIS cross-model adversarial review, implemented differently). Up to 10pp task success improvement on hardest tasks. The clean-context constraint is the critical design requirement — not just "run another LLM call" but "run it with only the output and rubric."
+- [May 11 — coverage gap May 6-8]: Anthropic Managed Agents Multiagent Orchestration + Webhooks — File-as-Bus pattern as managed infrastructure; lead agent delegates to specialists via shared filesystem; webhooks convert sessions to async event-driven pipelines. Together with Dreaming + Outcomes, all three top production agent failure modes are now addressable via managed API configuration.
+- [May 11 — coverage gap May 7-8]: OpenAI Realtime API GA + GPT-Realtime-2 — first live voice model with GPT-5-class reasoning. 128K context (4× prior), parallel tool calls, reasoning effort levels (minimal→xhigh), thinking-fill behavior (intermediate voice output during reasoning). Realtime API exits beta to GA status. Three models: GPT-Realtime-2 ($32/$64 per MTok audio in/out), GPT-Realtime-Translate ($0.034/min, 70+ languages), GPT-Realtime-Whisper ($0.017/min streaming STT). Voice is now a first-class production modality with comparable reasoning depth to text. The tradeoff between voice responsiveness and reasoning quality has been removed for most production use cases.
+- [May 11 — coverage gap May 2-6]: Grok 4.3 (xAI) — $1.25/$2.50 per MTok (75% cheaper than Claude Opus 4.7), 1M context, #1 on Artificial Analysis agentic tool-calling leaderboard, #1 on Vals AI enterprise (case law, corporate finance). AAAI Intelligence Index 53 (behind GPT-5.5 60, Claude Opus 4.7 57, Gemini 3.1 Pro 57). Custom Voices bundled at no extra cost: 120-second voice cloning, 28 languages, 200ms streaming, liveness verification, expressive tags. The pricing creates a genuine routing decision for high-volume tool-calling workloads. Custom Voices bundle vs. OpenAI per-minute pricing is the key voice agent economics decision.
+- [May 11]: Proactive AI as product category crystallizing — Orbit (Anthropic), ChatGPT Pulse (OpenAI), Gemini contextual updates (Google) all converging on same paradigm in same two-week window: agents that monitor connected systems and push relevant briefings without prompting. Architecturally distinct from reactive agents. Requires: standing read access + behavioral model of "what user should know" (Dreaming provides this substrate) + delivery scheduling. Watch for first engineering documentation/API exposure.
+- [May 11]: Cross-platform agent memory portability gap identified — Dreaming's playbooks are stored in Anthropic's vault; no standard playbook format exists; no migration tool between platforms. Organizational knowledge is becoming platform-locked at the moment of highest value. Standard portable memory format is the highest-priority missing infrastructure piece in the agent memory ecosystem.
 
-*Last updated: May 7, 2026*
+- [May 20]: Flash-beats-Pro benchmark inversion — Gemini 3.5 Flash now leads all frontier models on execution-oriented agentic benchmarks: MCP Atlas 83.6% (vs Opus 4.7 79.1%, GPT-5.5 75.3%), Terminal-Bench 2.1 76.2%, Finance Agent v2 57.9% vs Opus 4.7 49.3%. Inversion is specific to multi-step tool-driven workflows; GPT-5.5 and Opus 4.7 still lead on reasoning-intensive evals (GPQA, MATH). Implies a two-tier model selection rule: Flash for agentic execution pipelines, Pro/reasoning models for single-shot analytical tasks. GDPval-AA Elo 1656 for Flash vs 1534 Opus 4.7.
+- [May 20]: Antigravity 2.0 five-surface platform — Google's agent harness is now an SDK/API primitive across five surfaces: desktop app (Gemini), CLI (`gemini agent start`), Python SDK (`antigravity.Agent()`), Managed Agents API (single REST call to provision running agent with remote sandbox), Enterprise (CMEK, audit logging, VPC controls). The harness provides: goal persistence, subagent spawning, MCP tool routing, credential sandboxing, safety constraints, state recovery, confirmation gates. Builders can now configure rather than build agent infrastructure. Managed Agents API and Anthropic's equivalent converge on same "agent-as-a-service" pattern from separate companies simultaneously.
+- [May 20]: WebMCP browser-native tool standard — proposed open web standard turning web pages into typed tool endpoints for browser agents. Two APIs: Imperative (`window.mcp.registerTool()` → JS functions as typed tools), Declarative (HTML `<form mcp-tool>` annotations → forms auto-exposed as tools). Edge 147 (March 2026) already live; Chrome 149 origin trial (May 2026). Cross-browser adoption signals standard rather than vendor extension. Implications: agents no longer need to reverse-engineer CSS selectors; web publishers can explicitly expose capabilities; agents can invoke structured APIs rather than DOM simulation. Creates a new axis of web accessibility specifically for automated agents.
+- [May 20]: LiteRT-LM complete on-device agentic runtime — May 19 update ships: MTP speculative decoding (2.2× throughput, zero quality loss), session save/restore (KV cache persistence across restarts), Thinking Mode (extended reasoning on-device), Constrained Decoding (structured output guarantees). New Swift API (iOS/macOS), JavaScript WebGPU API (browser). Performance: 52 tok/s Android, 56 tok/s iOS, 76 tok/s MacBook WebGPU with Gemma 4 E2B (607MB). Combined, these close the remaining capability gap between cloud and edge agents: fast inference, durable context, structured output, reasoning depth.
+- [May 20]: Gemini Spark 24/7 background agent pattern — first published reference implementation of persistent background agent on dedicated cloud VMs. Architecture: Gemini 3.5 Flash (never halted), Antigravity 2.0 harness, MCP runtime (credentials in harness, never in model context), trigger stream, confirmation gates at harness level. Subscription-based ($14/mo individual, $40/mo team, $120/mo business). Key design requirement: credentials never touch model context — enforced by harness. This is the pattern for all always-on organizational agents; custom background agent implementations should adopt the credential sandboxing constraint as a non-negotiable.
+- [May 20]: Agent harness as primary architectural unit — as of Google I/O 2026, the orchestration layer above the model call (goal persistence, subagent spawning, MCP tool routing, credential sandboxing, safety gates, state recovery) is now an SDK/API primitive, not custom code. Google (Antigravity), Anthropic (Claude Managed Agents), and OpenAI (Assistants v3) all ship managed harness APIs in same 30-day window. Custom harness code is now a build-vs-buy decision, not a default requirement. Evaluation: buy for standard patterns; build only when harness constraints conflict with product requirements.
+- [May 20]: SynthID cross-industry watermarking standard crystallizing — OpenAI, Kakao, Eleven Labs adopt Google's SynthID AI content watermarking. 100B+ images watermarked to date. First cross-industry AI content provenance standard with multi-lab adoption. Three-tier schema forming: (1) content watermark (SynthID or equivalent), (2) metadata standard (C2PA), (3) authentication layer (still absent). The metadata/watermark layer is solved; authentication and enforcement remain open problems.
+- [May 20]: Token throughput scale — Google I/O: 3.2 quadrillion tokens processed per month across Google infrastructure. Implies ~107 trillion tokens/day. Context: entire 2023 internet text crawl ≈ 3–5 trillion tokens. Monthly Google processing ≈ 640–1,067× annual internet text. New baseline for estimating AI infrastructure demand; any capacity planning that uses 2024 estimates is structurally low.
+
+*Last updated: May 20, 2026*
 
 ---
 
