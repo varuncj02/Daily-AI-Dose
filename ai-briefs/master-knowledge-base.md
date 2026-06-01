@@ -1,6 +1,6 @@
 # AI Frontier Master Knowledge Base
 *Living knowledge graph — updated daily from multi-agent research*
-*Last updated: May 20, 2026 (v15 — Google I/O 2026: Gemini 3.5 Flash leads frontier on MCP Atlas (83.6%); Flash tier beats Pro tier on agentic benchmarks; Antigravity 2.0 five-surface agent platform + SDK + Managed Agents API; WebMCP web-standard for browser-side tool endpoints; LiteRT-LM MTP 2.2x + session persistence + Thinking Mode for on-device agents; Gemini Spark 24/7 cloud-VM agent)*
+*Last updated: May 30, 2026 (v18 — Project Glasswing 30-day results: 10,000+ vulnerabilities found by Mythos Preview, bottleneck shifts from discovery to remediation; OpenAI Rosalind Biodefense deploys to US government; Microsoft Build 2026 pre-announces Windows Agent Framework + OS as agent governance layer; Claude Code auto mode reaches cloud platforms)*
 
 ---
 
@@ -148,6 +148,22 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Layered architecture proposed:** Agent-local memory → shared institutional memory → archive memory → project-continuity memory, with provenance and version lineage making the selection process inspectable.
 - **Relationship to Dreaming:** Governed Collaborative Memory is the academic specification; Dreaming is the first commercial production implementation. The paper's provenance and version lineage features (not yet in Dreaming) represent the next generation of this mechanism.
 
+### LongMINT: Memory Under Evolving Facts — 27.9% Average Accuracy Across All Systems (NEW — May 29, 2026)
+- **Source:** arXiv:2605.18565, UNC Chapel Hill + UT Austin. Submitted May 18, 2026.
+- **What it benchmarks:** Memory accuracy over *evolving, contradictory facts* — the realistic case where the same entity's state is updated, superseded, or contradicted across a long interaction history. 15,600 QA pairs, contexts averaging 138.8k tokens, up to 1.8M tokens. Four domains: state tracking, multi-turn dialogue, Wikipedia revisions, GitHub commits.
+- **Results — all systems fail:** Average accuracy 27.9% across vanilla long-context LLMs, dense RAG, sparse RAG, graph-based memory, and memory-augmented agent frameworks. Worst performance on questions requiring aggregated reasoning over multiple evolving facts.
+- **Why each approach fails:**
+  - **Long-context LLMs:** Interference is cumulative — contradictory versions of a fact across 100k+ tokens cause the model to lose track of which is current.
+  - **Dense RAG (embedding similarity retrieval):** Returns all versions of a fact; most semantically similar result is often an older version. No temporal ordering in standard embedding retrieval.
+  - **Graph-based memory:** Does best but fails at aggregation questions requiring synthesis of multiple updates.
+- **The missing primitive:** Temporal ordering + supersession tracking. Every current memory system treats memory as a static retrieval problem. The real problem is: "what is the current value of X, given that X was stated, then updated twice, then partially retracted?" No major framework implements timestamp-weighted retrieval or fact-supersession links.
+- **The fix (not yet in any framework):**
+  1. Store documents/facts with explicit timestamps and supersession pointers (`fact_X_v1` → superseded by → `fact_X_v2`)
+  2. Retrieval default: "most recent valid version of X" not "most semantically similar mention of X"
+  3. Implement as: `score = embedding_similarity × recency_factor` where `recency_factor = exp(-λ × days_since_update)`
+- **Build implication:** For any agent domain where facts change over time (policies, codebase state, customer profiles, legal documents), your current memory system is operating at ~27.9% on the hard cases. Add timestamp metadata to all stored facts; implement recency-weighted retrieval as immediate fix. Design supersession links for known-update domains (regulatory docs, code documentation).
+- **Relationship to prior work:** Extends ICLR MemAgents Workshop (April 27) finding that memory is the primary research investment axis. LongMINT provides the first empirical quantification of the failure mode the workshop described.
+
 ---
 
 ## Retrieval & RAG
@@ -262,6 +278,26 @@ Tiered memory now has 5 tiers: KV cache (token-level), in-weights ephemeral (In-
 - **Analogy:** A service mesh proxy (Istio/Envoy) specialized for AI agent interactions rather than microservice networking. Same pattern: mutual auth + policy + observability + circuit-breaking, but at the LLM call / tool invocation / agent handoff layer.
 - **Design implication:** Any multi-agent system without a gateway equivalent is operating without a security enforcement boundary between orchestrator and executor. The Agent Gateway pattern is the long-term standard; implement synthetic equivalents now on non-GCP infra.
 
+### MCP Tunnels — Private Network Access Without Inbound Rules (NEW — May 19–22, 2026)
+- **Source:** Anthropic Claude Managed Agents platform, Research Preview. Announced Google I/O week alongside self-hosted sandboxes.
+- **Problem it solves:** Enterprise agents that need to reach internal MCP servers (private databases, internal APIs, on-prem knowledge bases) currently require either (a) exposing those servers to the public internet via firewall rules, or (b) running the entire agent infrastructure on-premises. Both options are operationally expensive or incompatible with cloud-managed agents.
+- **Mechanism — Reverse tunnel architecture:**
+  ```
+  Internet-facing Anthropic infrastructure
+            ↑  (tunnel, outbound-only)
+  Your perimeter
+    └── Tunnel Gateway (lightweight process, outbound TCP only)
+            ↑
+    Your internal MCP server
+            ↑
+    Private database / API / knowledge base
+  ```
+  The customer deploys a lightweight Tunnel Gateway process inside their perimeter. It opens a single outbound TCP connection to Anthropic's infrastructure — no inbound firewall rules required. Agent-to-MCP calls are routed through this persistent tunnel. The internal MCP server is never exposed publicly.
+- **Security properties:** Network boundary is the customer's perimeter; only outbound connection is the tunnel. Internal MCP server address never leaves the private network. Agent orchestration still runs on Anthropic servers; only the tool execution reaches the private layer.
+- **Complementary primitive — Self-hosted sandboxes (Public Beta):** Code execution moves to the customer's own infrastructure; files and repos never leave the perimeter. Agent orchestration stays on Anthropic servers. Together with MCP Tunnels: agent logic is cloud-managed, code execution + data access is perimeter-confined.
+- **Builder implication:** This pattern eliminates the "we can't use cloud agents because our data is internal" objection for a large class of enterprise deployments. The correct design is: (1) deploy Tunnel Gateway in your VPC/data center, (2) point it at your existing MCP servers, (3) use self-hosted sandboxes for code execution that touches sensitive files. No new security perimeter configuration required.
+- **Status:** MCP Tunnels = Research Preview. Self-hosted sandboxes = Public Beta. Access via `managed-agents-2026-04-01` beta header on Claude Platform API.
+
 ### PTY-Based Terminal Interaction (NEW — April 9, 2026)
 - **tui-use (April 8–9, 2026):** Spawns any program in a PTY, runs headless xterm emulator, presents clean plain-text screen state + `highlights` field for TUI-selected items; sends keystrokes back through PTY
 - **Gap it fills:** AI agents currently stall when programs ask for interactive input (npm create, psql, vim, redis-cli, Python REPL). bash subprocess calls can't handle TTY-aware programs
@@ -375,11 +411,39 @@ Four agent interface paradigms ranked by reliability and setup cost:
 - **Open source:** ARIS harness is Markdown-skill-based, framework-agnostic. Works with Claude Code / Codex / any LLM agent.
 - **Build implication:** Adopt as default for high-stakes outputs. Even a single round of cross-family review at final output provides meaningful error detection at minimal overhead.
 
+### Dynamic Workflows — Model-Generated Managed Orchestration (NEW — May 28, 2026)
+- **Source:** Anthropic Claude Opus 4.8 launch + Claude Code v2.1.154. Research preview.
+- **Core shift:** Previously, builders wrote orchestration code (task decomposer, subagent spawner, result router, critic loop). Dynamic Workflows inverts this: Claude generates a JavaScript orchestration script from a natural language task description, and Anthropic's runtime executes it.
+- **Scale:** Up to 16 concurrent subagents, 1,000 total per run. The plan lives in the JS script — not Claude's context window — so chat context size is stable regardless of subagent count.
+- **Execution pattern:**
+  1. Natural language task → Claude generates JS orchestration script
+  2. Anthropic runtime executes script in background
+  3. Subagents run in parallel from independent angles
+  4. Critic-agents challenge findings; run iterates until convergence
+  5. Final synthesized result (not raw subagent outputs) returns to session
+- **Mid-task system messages (co-launched):** Messages API now accepts `{"role": "system"}` entries mid-messages-array. Enables runtime capability injection/revocation without losing cached context. Security pattern: grant subagent-spawning permission when needed, revoke when phase completes — minimum-capability principle at runtime.
+- **Claude Code integration:** "ultracode" effort option sets xhigh effort + injects mid-task system message granting subagent spawning permission.
+- **Tradeoffs vs. custom orchestration:**
+  - **Gain:** Zero orchestration engineering for decompose-parallelize-critique-aggregate task shapes; 1,000-subagent scale without distributed infrastructure
+  - **Lose:** Runtime observability (intermediate outputs not returned by default); custom per-subagent tool authorization not supported; portability (runs on Anthropic infra, not yours); debugging model-generated scripts is harder than debugging own code
+- **When to use:** Parallel search tasks (codebase review, research aggregation, document comparison, hypothesis testing). When to build custom: tasks needing per-subagent credential management, on-prem execution, or non-parallel task shapes.
+- **Build implication:** Adopt for codebase security review, research aggregation, and multi-document analysis. Build a quality verification harness before trusting in production — the model-generated orchestration script is opaque; your evaluator must catch bad outputs.
+- **Access:** Claude Code v2.1.154+, Claude.ai Max/Team/Enterprise plans.
+
+### Multi-Agent Security Policy Inheritance Failure (NEW — May 28, 2026)
+- **Source:** Claude Code v2.1.153 security fixes (CVE-class issues in multi-agent API deployments)
+- **Vulnerability class 1 — OAuth credential leakage to API gateways:** Claude Code sent user's personal Anthropic OAuth credential to custom API gateway endpoints instead of the gateway's own token. Risk: gateway operator receives user's bearer token, can authenticate as user.
+- **Vulnerability class 2 — Subagent MCP policy bypass:** MCP servers defined in subagent (Agent tool) frontmatter ignored `--strict-mcp-config`, `--bare`, enterprise managed MCP config, and allow/deny policies. A subagent could invoke MCP servers explicitly blocked by the parent agent's policy.
+- **The structural lesson:** When a parent agent spawns subagents that have independent API clients, credentials and authorization policies do NOT automatically inherit. Each layer in the agent chain is a security boundary that requires explicit verification.
+- **Mitigation pattern:** (1) Verify credential flow from orchestrator through each API gateway and subagent client. (2) Add test: spawn a subagent, confirm it cannot access MCP servers blocked by the parent policy. (3) If running custom API gateways, audit logs for unexpected bearer tokens from affected Claude Code version window.
+- **Relationship to Agent Gateway pattern (April 22, 2026):** The Agent Gateway pattern (verify identity + enforce policy at infrastructure level) addresses exactly this failure class. The Claude Code v2.1.153 vulnerabilities are what happens when the gateway pattern is absent.
+
 ### Parallel Multi-Agent Pattern (Emerging Standard)
 - **Cursor 3 (April 2026):** Agents Window enables parallel task execution with cloud orchestration
 - Pattern: Orchestrator decomposes task → spawns parallel sub-agents → collects results → synthesizes
 - Production evidence: Money Forward 15-20 hrs/week savings, 70% QA speedup
-- **Missing:** Standardized multi-agent coordination protocol for non-coding domains
+- **Dynamic Workflows (May 28, 2026):** Pattern now available as managed Anthropic runtime for Claude Code — eliminates orchestration engineering cost for common task shapes
+- **Still missing:** Standardized multi-agent coordination protocol for non-coding domains; per-subagent capability scoping in managed runtimes
 
 ### Agent-First IDE Architecture
 - Cursor 3 (April 2026): parallel execution, Design Mode (UI-modifying agents), 5-hour RL checkpoint refresh
@@ -420,7 +484,14 @@ Four agent interface paradigms ranked by reliability and setup cost:
   3. **Multiagent Orchestration + Webhooks:** Lead agent delegates to specialist subagents via shared filesystem. Webhooks convert synchronous sessions to async event-driven pipelines.
 - **Together, these three primitives attack:** session memory degradation (Dreaming), undetected quality failures (Outcomes), and serial task bottlenecks (Orchestration).
 - **Also shipped May 6:** Orbit — proactive AI assistant for Cowork connecting Gmail, Slack, GitHub, Figma, Calendar, Drive; delivers personalized briefings without prompting. Gradual rollout, no published architecture yet. Signals "proactive AI" as next product category.
-- **Claude Security (public beta, May 4, 2026):** Code vulnerability scanning with Opus 4.7. Available to Enterprise; Team/Max coming soon. Reasons like a security researcher (traces data flows, flags interaction-dependent vulnerabilities). Export to CSV/Markdown; webhooks to Slack/Jira. Access: claude.ai/security.
+- **Claude Security (public beta, May 4, 2026):** Code vulnerability scanning with Opus 4.7 (now updated to Opus 4.8). Available to Enterprise; Team/Max coming soon. Reasons like a security researcher (traces data flows, flags interaction-dependent vulnerabilities). Export to CSV/Markdown; webhooks to Slack/Jira. Access: claude.ai/security. Partners: CrowdStrike, Palo Alto Networks, SentinelOne, Microsoft Security, Wiz, TrendAI.
+- **Claude Opus 4.8 (May 28, 2026):** Drop-in upgrade for Opus 4.7 at identical pricing ($5/$25 per M in/out). Four concurrent additions:
+  - **Dynamic Workflows (research preview):** Model-generated JS orchestration scripts executed by Anthropic runtime; up to 1,000 subagents/run, 16 concurrent. See Agent Architectures section.
+  - **Mid-task system messages:** Messages API now accepts `{"role": "system"}` mid-messages-array, enabling runtime capability injection/revocation without losing cached context.
+  - **Fast mode 2.5× at $10/$50 per M tokens** — 3× cheaper than prior fast mode, enabling Opus-class orchestration at Sonnet-level economics for high-frequency agent loops.
+  - **Effort controls:** Default high effort. Ultracode (`xhigh`) triggers Dynamic Workflows via mid-task system message in Claude Code.
+  - **Benchmarks vs. Opus 4.7:** SWE-bench Verified 88.6% (↑87.6%), SWE-bench Pro agentic coding 69.2% (↑64.3%), long-context retrieval at 1M tokens 68.1% (↑40.3%), knowledge work score 1890 (↑1753), code flaws unflagged 4× fewer.
+  - **Alignment:** 0% uncritical acceptance of flawed results (first Claude model to achieve this); 3.7% failure-to-raise rate on important events; alignment scores comparable to Claude Mythos Preview — the first signal that Mythos-class alignment is transferring to general-access models.
 
 ### Antigravity 2.0 + Managed Agents API — Google I/O 2026 (NEW — May 19, 2026)
 - **What shipped:** Five-surface agent platform: (1) Antigravity 2.0 standalone desktop app for orchestrating agent cohorts — not just coding, but general-purpose agent management for any user; (2) Antigravity CLI (Go-based, stable GA, renaming from Gemini CLI) — cross-platform terminal sandboxing + credential masking + hardened Git policies; (3) **Antigravity SDK** (Python) — programmatic access to the same agent harness powering Google's internal products; compiled runtime binary ships with the package; co-optimized for Gemini 3.5 Flash; (4) **Managed Agents API** (Gemini API, GA) — single API call provisions a fully running agent with remote sandbox; zero infrastructure setup; (5) Enterprise Agent Platform — organizational-scale agent cohort deployment.
@@ -703,7 +774,10 @@ Four agent interface paradigms ranked by reliability and setup cost:
   Isolated container → LLM reads codebase (full context) → hypothesis → execute/debug → validate → iterate → exploit POC
   ```
 - **Dual-use problem:** Same capability that finds defensive bugs creates offensive exploits — no way to have one without the other at this capability level
-- **Anthropic access model (Project Glasswing):** Institutional partnership — 40+ vetted organizations; $100M usage credits + $4M open-source security donations; planned Cyber Verification Program for individual researchers
+- **Anthropic access model (Project Glasswing):** Institutional partnership — 50+ vetted organizations (IBM joined May 19); $100M usage credits + $4M open-source security donations; planned Cyber Verification Program for individual researchers
+- **GLASSWING 30-DAY RESULTS (May 22 update):** 10,000+ high/critical candidates → 1,726 confirmed true positives → 1,094 high/critical. OpenBSD 27-yr remote crash, FFmpeg 16-yr flaw, WolfSSL CVE-2026-5194 CVSS 9.1. Cloudflare 2,000 findings (400 high/crit), Mozilla 271 Firefox fixes (10× previous AI-assisted rate). **Bottleneck shift confirmed: discovery now fast (AI-generated at scale), remediation is the constraint.** 17% raw precision requires automated precision-boosting pipeline before human triage.
+- **Temporal-drift vulnerability class:** Glasswing finds bugs where an assumption valid at code-creation time has become invalid due to dependency evolution, API changes, environmental drift. This is not findable by static analysis or fuzzing. Requires reasoning over temporal context of surrounding ecosystem.
+- **CVD pipeline automation is the missing layer:** At Glasswing-scale output rates, structured CVD workflows (triage → exploit verification → severity scoring → patch generation → developer handoff → CVD submission) must be automated. No existing tool handles AI-generated CVD input at this volume.
 
 ### Competing Governance Frameworks (Updated — April 14-15, 2026)
 - **OpenAI Trusted Access for Cyber (TAC, April 9, 2026 → GPT-5.4-Cyber expansion April 14, 2026):**
@@ -832,6 +906,27 @@ Four agent interface paradigms ranked by reliability and setup cost:
 - **Deployment:** Drop-in change. vLLM: `--speculative-model` flag. SGLang: `--draft-model` flag. Ollama: speculative decoding model pair. No new serving infrastructure required.
 - **Relationship to prior speculative decoding work:** Prior approaches (Saguaro, Mirror-SD) also achieve speedups but require either separate model architectures or training changes. Shared-KV MTP is architecturally simpler and provably output-equivalent. This is the production default for Gemma 4; expect the pattern to propagate to other model families.
 - **Key update:** Speculative decoding is now a production default for Gemma 4, not an experiment. Zero-risk, zero-quality-tradeoff, immediate deployment change for any existing Gemma 4 setup at batch 1.
+
+### Frontier AI Compute Economics (NEW — May 21–22, 2026)
+- **First public disclosure of frontier lab compute spend:** SpaceX S-1 SEC filing (May 20, 2026) reveals Anthropic pays SpaceX $1.25 billion/month for compute access at Colossus 1+2 (Memphis, TN) through May 2029. Total contract: ~$45B. This is one of multiple compute contracts (AWS, Google Cloud, Microsoft, NVIDIA, Fluidstack are separate). First time actual frontier compute cost has been disclosed in a filed document.
+- **Hardware:** Colossus 1 = 220,000+ NVIDIA GPUs, 300MW. Colossus 2 = GB200 Blackwell Ultra capacity, online June 2026. GB200 (Blackwell Ultra) provides ~4× FP8 inference throughput vs H100 at comparable power.
+- **Compute ratio as operational metric:** Anthropic Q2 2026 investor projection: compute cost per revenue dollar declining from 71¢ (Q1) to 56¢ (Q2) — a 15-point improvement in a single quarter, even as total compute spend grows. This metric (compute ÷ revenue) is the correct measure of frontier AI operational efficiency. Declining ratio = inference optimization + hardware generation improvement + model efficiency gains are compounding faster than revenue growth.
+- **Path to profitability:** Anthropic projects $559M Q1 operating profit, $10.9B Q2 revenue (130% QoQ growth). Enterprise customers spending $1M+/year grew from 500 → 1,000+ in 8 weeks (Feb–Apr 2026). Claude Code API revenue is primary growth driver.
+- **Cost efficiency trend:** If compute ratio continues declining (56¢ → 45¢ → 35¢ over 4–6 quarters), sustained profitability at frontier scale is achievable. GB200 throughput gains, speculative decoding (vLLM 0.21 / SGLang 0.5.12), and inference batching improvements are all contributing simultaneously.
+- **Builder implication:** Frontier AI is not structurally unprofitable. The path to operating leverage is: high-margin API revenue (Claude Code enterprise) + inference efficiency improvement (hardware + algorithms). Expect API pricing stability from a profitable Anthropic rather than emergency price increases.
+
+### Advisor Model Architecture — Multi-Provider Routing (NEW — May 21–22, 2026)
+- **Signal driving this:** Chinese AI models now account for 60%+ of developer API usage on OpenRouter (Databricks CEO Ali Ghodsi, May 21, 2026). Cost comparison (Artificial Analysis, 10-eval benchmark): Claude $4,811, GPT-5.5 $3,357, DeepSeek V3.2 $1,071, Kimi K2.6 $948, GLM-5.1 $544. Claude is 8.8× more expensive than the cheapest capable alternative.
+- **The pattern:** Route the 70–80% of tasks that cheap models can handle (extraction, summarization, classification, structured output, simple tool calls) to DeepSeek V3.2 ($0.28/$0.42/M) or Kimi K2.6 (~$0.95/M). Route the 20–30% requiring frontier capability (multi-step reasoning, code generation, legal analysis, complex planning) to Claude Opus 4.7 or GPT-5.5.
+- **Three implementations:**
+  1. Static rule-based router: Task.type → model selection. <1 day. Captures most savings.
+  2. Cascade router: Attempt cheap model → measure confidence → escalate if below threshold. 3 days. Adds latency in escalation case.
+  3. Classifier-first router: Small LM classifier reads task → predicts cheap-viable vs frontier-required → routes. 1–2 weeks. Best cost optimization; requires labeled training data.
+- **Cost impact of static routing:** If 60% of tasks route to cheap tier ($0.28/M vs $15/M = 98% cost reduction on that portion) → ~60% total cost reduction on task-level spend.
+- **Critical failure modes:** (1) Capability creep — "simple" tasks hiding multi-hop complexity; (2) Compliance conflict — Chinese providers (DeepSeek, Kimi, GLM) may not meet regulatory requirements for sensitive data (HIPAA, GDPR, financial PII); (3) Cascade latency — two sequential calls for escalation cases adds 1–3 seconds; (4) Classifier degradation — needs retraining as model capabilities shift.
+- **Relationship to UniRoute (April 25):** UniRoute handles dynamic model pools at test time; the advisor model pattern is the production deployment of that concept using simpler implementation.
+- **Key tools:** LiteLLM (multi-provider router, handles fallback), OpenRouter API (pre-built provider aggregation).
+- **Compliance constraint:** For any workload with sensitive data, Chinese provider compliance posture must be evaluated independently before routing. The cost argument is irrelevant if the regulatory profile is non-compliant.
 
 ### Model Routing — Dynamic / Universal (NEW — April 25, 2026 / ICLR 2026)
 - **UniRoute (Google, arXiv:2502.08773, ICLR 2026):** LLM routing that generalizes to previously unseen models at test time.
@@ -1148,6 +1243,9 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 38. **Verbal-diff history compression library with benchmark suite (NEW May 7):** No open-source library implementing verbal-diff-based history compression with benchmark results across WebArena, BrowserArena, ClawBench. A maintained library with public leaderboard comparing compression strategies would be immediately citable. First-mover in a space receiving significant research attention.
 39. **Cross-family adversarial review API (NEW May 7):** ARIS is a research harness; no production API exists. A service wrapping two frontier models from different families (Claude executor + GPT reviewer, or configurable), exposing a clean review API (send document → annotated version with flagged claims + evidence gaps), with aggregate metrics dashboard. Target customers: legal tech, financial analysis automation, AI-assisted research. API contract is simple; value is execution + reliability track record.
 40. **Shadow memory security layer for production agent frameworks (NEW May 7):** MAGE mechanism (arXiv:2605.03228) has no open-source implementation in major frameworks (LangGraph, OpenAI Agents SDK, LlamaIndex Agents, ADK). A drop-in wrapper maintaining parallel safety memory + risk assessor before each tool call would fill the most immediate production agent security gap. Target: any team running agents with access to sensitive data or irreversible actions.
+41. **Compliance-aware model router for regulated verticals (NEW May 21–22):** The advisor model pattern (60%+ of OpenRouter traffic to Chinese models) creates a compliance landmine for healthcare (HIPAA), financial services (GLBA/SOX), legal, and EU-regulated companies (GDPR, AI Act). A router that: (1) classifies data sensitivity per request, (2) routes PII/PHI/financial data to compliant-only models, (3) routes non-sensitive tasks to cheapest capable model, (4) logs routing decisions for audit — fills the gap between raw cost savings and regulated deployment reality. LiteLLM provides the routing layer; the business value is the classification logic + compliance mapping + audit trail.
+42. **MCP Tunnel deployment kit (Helm/Terraform/CloudFormation) (NEW May 21–22):** Anthropic's MCP Tunnels research preview handles the protocol; enterprises need the deployment side: a hardened, production-ready infrastructure kit to deploy the Tunnel Gateway inside their VPC. Components: Kubernetes Helm chart with security hardening (non-root, read-only FS, network policies), Terraform module for AWS/Azure/GCP (with VPC + IAM + security groups configured correctly), runbook for outage and rotation scenarios, CloudFormation template for AWS-native shops. Most teams will get MCP Tunnels wrong on deployment; a validated kit is the immediate commercial need.
+43. **Compute efficiency benchmarking and analytics product (NEW May 21–22):** The SpaceX S-1 and Anthropic Q2 data establish that compute-to-revenue ratio (71¢→56¢/dollar) is now a tracked KPI at the CEO level. Teams at all scales need to benchmark: cost per successful agentic task by model family, compute ratio trend over time, efficiency gain from routing strategies (advisor model, speculative decoding, quantization). A monitoring product that tracks these metrics across a team's API usage — showing cost per task, routing efficiency, and recommended optimization actions — is the analytics layer the advisor model pattern requires.
 
 ---
 
@@ -1446,7 +1544,27 @@ Note: Claude Mythos Preview (restricted, not publicly accessible) leads at 77.8%
 - [May 20]: SynthID cross-industry watermarking standard crystallizing — OpenAI, Kakao, Eleven Labs adopt Google's SynthID AI content watermarking. 100B+ images watermarked to date. First cross-industry AI content provenance standard with multi-lab adoption. Three-tier schema forming: (1) content watermark (SynthID or equivalent), (2) metadata standard (C2PA), (3) authentication layer (still absent). The metadata/watermark layer is solved; authentication and enforcement remain open problems.
 - [May 20]: Token throughput scale — Google I/O: 3.2 quadrillion tokens processed per month across Google infrastructure. Implies ~107 trillion tokens/day. Context: entire 2023 internet text crawl ≈ 3–5 trillion tokens. Monthly Google processing ≈ 640–1,067× annual internet text. New baseline for estimating AI infrastructure demand; any capacity planning that uses 2024 estimates is structurally low.
 
-*Last updated: May 20, 2026*
+- [May 22]: Frontier AI compute economics first publicly disclosed — SpaceX S-1 SEC filing reveals Anthropic pays $1.25B/month ($15B/year) for compute at Colossus 1+2 (220,000+ GPUs, GB200 Blackwell Ultra), contracted through May 2029. Compute-to-revenue ratio 71¢→56¢/dollar Q1→Q2 2026. Q2 2026 projection: $10.9B revenue (130% QoQ), $559M operating profit. Prior assumption "frontier AI is structurally unprofitable" is empirically falsified. Implication: API pricing at current levels is stable, not subsidized; frontier model routing economics are now anchored to real cost data.
+- [May 22]: Chinese model dominance of developer API traffic — 60%+ of OpenRouter developer usage is now Chinese models (DeepSeek V3.2, Kimi K2.6, GLM-5.1) vs <1% in 2024. Cost differential vs Claude Opus: 8.8×. Same workload: Claude $4,811, DeepSeek V3.2 $1,071, GLM-5.1 $544. "Advisor model" routing pattern consolidates: default cheap Chinese model, escalate to frontier only on failure detection or high-stakes task classification. The question is no longer "should we use Chinese models?" but "which tasks require frontier exclusion for compliance, capability, or security reasons?"
+- [May 22]: MCP Tunnels architecture establishes private network agent access pattern — reverse tunnel (outbound-only from customer perimeter to Anthropic infrastructure) eliminates the binary "expose internal systems to internet or run everything on-prem" tradeoff for cloud-managed agents. Critical design: agent orchestration stays cloud-hosted; only the MCP tool server is inside customer network; tunnel gateway is the single trust boundary. Pair with self-hosted sandboxes (code execution inside perimeter) for full zero-egress agent data posture. Removes the most common enterprise objection to managed agent adoption.
+- [May 22]: Karpathy joins Anthropic pre-training team — leading effort to use Claude to accelerate pre-training research under Nick Joseph. Signals: (1) pre-training research velocity as primary frontier differentiation in 2026; (2) "use your own model to improve your model" loop is now an engineering priority at Anthropic; (3) Karpathy's hire is the clearest signal that Anthropic views pre-training architecture research (not just post-training) as the next competitive axis.
+- [May 22]: Compute ratio as new frontier KPI — 71¢→56¢ per revenue dollar movement in one quarter represents ~$1.6B annualized savings at Q2 revenue scale. Driven by: (a) GB200 Blackwell Ultra deployment (~4× FP8 throughput vs H100), (b) model architecture efficiency improvements, (c) speculative decoding at scale. "Compute ratio" joins "revenue" and "operating margin" as tracked metrics at the lab CEO/CFO level. Any product in the inference infrastructure space should track this ratio for its customers.
+- [May 22]: OpenAI confidential S-1 filed — targeting September 2026 IPO, $852B–$1T valuation, Goldman Sachs + Morgan Stanley underwriters. Combined with Anthropic Q2 profit and SpaceX S-1 disclosures, May 2026 is the first week when reliable financial data exists for two of the three leading frontier labs. Implications: public market pricing of frontier AI risk will establish a reference frame for every private market transaction through 2027. OpenAI governance risk (Musk v. OpenAI, MS partnership scope) is now a public market disclosure issue, not just enterprise procurement concern.
+
+- [May 29]: Dynamic Workflows — managed orchestration runtime changes where orchestration lives. Model generates JS script; Anthropic runtime executes it. 1,000 subagents per run from natural language task description. First production-scale managed multi-agent orchestration from a hosted API. Zero engineering cost for common "parallel search + critic + aggregate" task shapes.
+- [May 29]: Mid-task system messages — runtime capability injection/revocation changes the security model for long-running agentic sessions. Minimum-capability principle is now implementable at the prompt level without session restarts.
+- [May 29]: Alignment gap closing between general-access and restricted-access models. Opus 4.8 reaches near-Mythos behavioral alignment scores. First signal that Mythos-class alignment is not permanently restricted to capability-gated tiers.
+- [May 29]: Multi-agent security policy inheritance failure — two vulnerability classes confirmed in production (OAuth credential leakage to API gateways, MCP policy bypass in subagents). Structural lesson: subagent credential and authorization context does not auto-inherit from parent agent. Explicit verification required at every spawn boundary.
+- [May 29]: Memory under evolving facts — LongMINT quantifies the failure mode. 27.9% average accuracy across all current approaches (LLMs, RAG, graph memory) on questions requiring reasoning over updated/contradicted facts. The missing primitive: temporal ordering + supersession tracking in retrieval. Dense RAG most semantically similar ≠ most recent; recency-weighted retrieval is the straightforward fix.
+- [May 30]: Project Glasswing 30-day results — 10,000+ high/critical vulnerabilities found across 1,000+ open-source projects by Claude Mythos Preview in ~30 days (valid confirmed: 1,726 true positives, 1,094 high/critical). Notable: 27-year OpenBSD remote crash bug, 16-year FFmpeg flaw, CVE-2026-5194 WolfSSL CVSS 9.1. Cloudflare: 2,000 bugs (400 high/crit). Mozilla: 271 Firefox fixes (10× prior AI-assisted rate). IBM joined (May 19, 50+ total partners). **Critical bottleneck shift: discovery is no longer the hard part — remediation is.** AI can generate valid CVDs faster than organizations can verify, disclose, and patch. 17% precision (raw candidates to confirmed true positives) means automated precision boosters (exploit verification, severity scoring, reachability analysis) between generation and human review are the missing infrastructure. The temporal-drift vulnerability class (assumptions invalid over time) is what old scanners miss and Mythos finds.
+- [May 30]: OpenAI Rosalind Biodefense launched (May 29) — GPT-Rosalind expanded from research-partner tier to vetted US government agencies for biodefense, pandemic preparedness, epidemiological modeling. Confirms the tiered-access deployment pattern (public API → trusted-professional verticals → restricted institutional) as the industry standard at both Anthropic and OpenAI. Next expected OpenAI verticals: legal, financial, clinical.
+- [May 30]: Microsoft Build 2026 (June 2–3) pre-announced Windows Agent Framework (WAF) — open-source MIT; agent registration service (lifecycle management daemon), new OS-level APIs for agent spawning, sandboxing, credential scoping. New Windows Security API proposed to scope agent permissions by user intent, not just process boundary — unverified until launch, but architecturally significant if it works as described. Copilot Agent Mode: meta-agent that spawns business-workflow sub-agents from natural language. Azure AI Foundry formally adds Anthropic Claude alongside OpenAI with enterprise SLAs.
+- [May 30]: Claude Code auto mode on Bedrock/Vertex/Foundry — autonomous operation (no per-action approval) now available on cloud platforms for Opus 4.7/4.8 via CLAUDE_CODE_ENABLE_AUTO_MODE=1. First enterprise cloud deployment tier to reach full auto mode. Security note: verify MCP policy enforcement before enabling (v2.1.153 fixes required first).
+- [May 29]: Opus 4.8 fast mode — 2.5× speed at $10/$50 per M tokens (3× cheaper than prior fast mode). Changes Opus economics for high-frequency agent loops — previously required Sonnet for cost; now Opus viable at production volume.
+- [May 29]: EU AI Act Omnibus — high-risk AI compliance deadline extended from August 2026 to December 2027. 16-month runway extension for Annex III deployments (employment, credit, biometrics, critical infrastructure). GPAI model requirements unchanged.
+- [May 29]: OpenAI DeployCo — Palantir-model forward deployed engineers ($4B, TPG-led, 150 FDEs from Tomoro acquisition). Enterprise deployment layer is now a standalone product strategy, not just a feature. Confirms: distribution/integration moat > benchmark moat for enterprise revenue.
+
+*Last updated: May 29, 2026*
 
 ---
 
