@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frontier AI Brief — April 6, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2128;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --purple: #bc8cff;
+    --orange: #f0883e;
+    --cyan: #39d2c0;
+    --red: #f85149;
+    --yellow: #e3b341;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    background-image: radial-gradient(circle at 1px 1px, #1e2530 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1421 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 48px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, rgba(88,166,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .header-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .header-sub {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+  .stats-bar {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  nav a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 14px 16px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  nav a:hover { color: #fff; border-bottom-color: var(--blue); }
+
+  /* MAIN LAYOUT */
+  main { max-width: 1200px; margin: 0 auto; padding: 48px 48px 80px; }
+
+  /* SECTION */
+  section { margin-bottom: 72px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-icon { font-size: 22px; }
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .section-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 2px 10px;
+    margin-left: auto;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+  .card.blue::before { background: var(--blue); }
+  .card.green::before { background: var(--green); }
+  .card.purple::before { background: var(--purple); }
+  .card.orange::before { background: var(--orange); }
+  .card.cyan::before { background: var(--cyan); }
+
+  .card-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .card-title a { color: inherit; text-decoration: none; }
+  .card-title a:hover { text-decoration: underline; }
+  .card-meta {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .card-body { color: var(--text); font-size: 14px; line-height: 1.7; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-right: 6px;
+    margin-bottom: 12px;
+  }
+  .badge.deploy { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge.exp { background: rgba(227,179,65,0.15); color: var(--yellow); border: 1px solid rgba(227,179,65,0.3); }
+  .badge.hype { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .badge.shift { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .badge.high { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+
+  /* CALLOUT */
+  .callout {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .callout-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .callout.blue .callout-title { color: var(--blue); }
+  .callout.green .callout-title { color: var(--green); }
+  .callout.purple .callout-title { color: var(--purple); }
+  .callout.orange .callout-title { color: var(--orange); }
+
+  /* SPEC TAGS */
+  .spec-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .spec-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    color: var(--text-dim);
+  }
+
+  /* CODE */
+  pre {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  /* SVG CONTAINER */
+  .diagram-container {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .diagram-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  /* TABLE */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .data-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+  }
+  .data-table td {
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    color: var(--text);
+    vertical-align: top;
+  }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .verdict-row-shift { background: rgba(88,166,255,0.04); }
+  .verdict-row-ok { background: rgba(63,185,80,0.04); }
+  .verdict-row-noise { background: rgba(248,81,73,0.04); }
+
+  /* BUILDER ITEMS */
+  .builder-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .builder-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    min-width: 24px;
+    margin-top: 1px;
+  }
+  .builder-icon.do { color: var(--green); }
+  .builder-icon.try { color: var(--yellow); }
+  .builder-icon.skip { color: var(--red); }
+
+  /* OPP CARDS */
+  .opp-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+  .opp-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cyan);
+    margin-bottom: 6px;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .footer-sources { margin-bottom: 20px; }
+  .footer-sources a { color: var(--blue); text-decoration: none; }
+  .footer-sources a:hover { text-decoration: underline; }
+  .footer-credit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+
+  /* GRID */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) {
+    .two-col { grid-template-columns: 1fr; }
+    main, header, footer, nav { padding-left: 20px; padding-right: 20px; }
+  }
+
+  @media print {
+    nav { position: static; }
+    body { background: white; color: black; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-tag">// Frontier AI Intelligence Brief</div>
+  <h1>Daily AI Signal Report</h1>
+  <div class="header-sub">Monday, April 6, 2026 · Generated 07:00 CT · Multi-Agent Research System</div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-num">47</span><span class="stat-label">Sources Scanned</span></div>
+    <div class="stat"><span class="stat-num">9</span><span class="stat-label">Items Retained</span></div>
+    <div class="stat"><span class="stat-num">23</span><span class="stat-label">Items Discarded</span></div>
+    <div class="stat"><span class="stat-num">5</span><span class="stat-label">Open-Source Releases</span></div>
+    <div class="stat"><span class="stat-num">3</span><span class="stat-label">Agent Updates</span></div>
+    <div class="stat"><span class="stat-num">2</span><span class="stat-label">Capability Shifts</span></div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <a href="#signal">🔬 Research</a>
+  <a href="#opensource">🌐 Open-Source</a>
+  <a href="#agentic">🤖 Agentic AI</a>
+  <a href="#infra">⚡ Infra</a>
+  <a href="#deepdive">🔍 Deep Dive</a>
+  <a href="#small">📌 Small Finds</a>
+  <a href="#verdict">⚖️ Verdict</a>
+  <a href="#frontier">🧭 Frontier</a>
+  <a href="#builder">🛠️ Builder</a>
+  <a href="#opps">💡 Opportunities</a>
+</nav>
+
+<main>
+
+<!-- ========== SECTION 1: RESEARCH ========== -->
+<section id="signal">
+  <div class="section-header">
+    <span class="section-icon">🔬</span>
+    <span class="section-title" style="color:var(--blue)">What Actually Mattered</span>
+    <span class="section-count">3 items · Research & Lab</span>
+  </div>
+
+  <!-- ByteRover -->
+  <div class="card blue">
+    <span class="badge shift">🔄 Capability Shift</span>
+    <span class="badge deploy">✅ Deployable</span>
+    <div class="card-title"><a href="https://arxiv.org/abs/2604.01599" target="_blank">ByteRover: Agent-Native Memory via LLM-Curated Hierarchical Context Trees</a></div>
+    <div class="card-meta">arXiv:2604.01599 · April 2026 · Memory Systems / Agent Architecture</div>
+    <div class="card-body">
+      <p>ByteRover fundamentally inverts the standard agent memory pipeline. Instead of a separate retrieval system, the reasoning LLM itself curates, structures, and queries knowledge via a 5-tier hierarchical Context Tree (Domain → Topic → Subtopic → Entry → Chunk). The progressive retrieval strategy resolves 80%+ of queries at sub-100ms latency without an LLM call, escalating only for genuinely novel queries requiring synthesis.</p>
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">What Changed</div>
+      Eliminates the hard boundary between reasoning and memory management. The LLM doesn't just consume memories — it decides how knowledge is structured and indexed. Result: no separate vector DB dependency, latency drops from ~850ms to &lt;100ms for repeated patterns, and context quality improves because the curating agent understands semantic boundaries.
+    </div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px;"><strong style="color:var(--text)">Prior limitation addressed:</strong> External memory systems (vector DBs + embedding pipelines) are separate infrastructure components with fixed chunking strategies that lose semantic coherence. ByteRover makes memory an emergent property of reasoning.</p>
+    <div class="diagram-container">
+      <div class="diagram-title">// ByteRover Architecture vs. Standard RAG Agent</div>
+      <svg width="720" height="280" viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+        <defs>
+          <marker id="arr1" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+          </marker>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+          </marker>
+        </defs>
+        <!-- BEFORE label -->
+        <text x="160" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#8b949e" letter-spacing="2">BEFORE (Standard RAG)</text>
+        <!-- AFTER label -->
+        <text x="560" y="22" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950" letter-spacing="2">AFTER (ByteRover)</text>
+        <!-- Divider -->
+        <line x1="360" y1="10" x2="360" y2="270" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+
+        <!-- BEFORE nodes -->
+        <rect x="90" y="35" width="140" height="34" rx="6" fill="#1c2128" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="160" y="57" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#58a6ff">LLM Reasoner</text>
+
+        <rect x="90" y="105" width="140" height="34" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+        <text x="160" y="127" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Embedding Model</text>
+
+        <rect x="30" y="175" width="120" height="34" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+        <text x="90" y="197" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Vector DB</text>
+
+        <rect x="170" y="175" width="60" height="34" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+        <text x="200" y="197" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Chunker</text>
+
+        <!-- BEFORE arrows -->
+        <line x1="160" y1="69" x2="160" y2="105" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr1)"/>
+        <line x1="130" y1="139" x2="90" y2="175" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr1)"/>
+        <line x1="190" y1="139" x2="200" y2="175" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr1)"/>
+
+        <text x="160" y="250" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#f85149">~850ms · 3 systems to maintain</text>
+
+        <!-- AFTER nodes -->
+        <!-- Context Tree -->
+        <rect x="450" y="35" width="220" height="180" rx="8" fill="rgba(63,185,80,0.05)" stroke="rgba(63,185,80,0.3)" stroke-width="1.5"/>
+        <text x="560" y="55" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#3fb950" letter-spacing="1">CONTEXT TREE</text>
+
+        <rect x="465" y="65" width="90" height="26" rx="4" fill="#1c2128" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="510" y="82" text-anchor="middle" font-family="Source Sans 3" font-size="11" fill="#3fb950">LLM Reasoner</text>
+        <text x="510" y="95" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#3fb950">(curates + queries)</text>
+
+        <rect x="465" y="115" width="75" height="22" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+        <text x="502" y="130" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#8b949e">Domain</text>
+
+        <rect x="465" y="148" width="75" height="22" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+        <text x="502" y="163" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#8b949e">Topic</text>
+
+        <rect x="555" y="115" width="100" height="22" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+        <text x="605" y="130" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#8b949e">Subtopic / Entry</text>
+
+        <line x1="510" y1="91" x2="502" y2="115" stroke="#3fb950" stroke-width="1" marker-end="url(#arr2)"/>
+        <line x1="510" y1="137" x2="510" y2="148" stroke="#30363d" stroke-width="1" marker-end="url(#arr2)"/>
+        <line x1="555" y1="126" x2="575" y2="126" stroke="#30363d" stroke-width="0.5" stroke-dasharray="3,3"/>
+
+        <text x="560" y="250" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#3fb950">&lt;100ms · 1 unified system</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- T² Scaling Laws -->
+  <div class="card blue">
+    <span class="badge shift">🔄 Capability Shift</span>
+    <span class="badge exp">⚠️ Experimental</span>
+    <div class="card-title"><a href="https://arxiv.org/abs/2604.01411" target="_blank">Train-to-Test (T²) Scaling: Joint Optimization Changes Pretraining Economics</a></div>
+    <div class="card-meta">arXiv:2604.01411 · April 5, 2026 · Scaling Laws / Training / Inference</div>
+    <div class="card-body">
+      <p>T² scaling laws jointly optimize model size, training tokens, and inference samples under a fixed end-to-end compute budget. The key finding: when you properly account for inference compute, optimal pretraining decisions shift dramatically into the <em>overtraining regime</em> — far outside Chinchilla's recommendations. Inference-heavy systems should overtrain smaller models, not scale parameters.</p>
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">What Changed</div>
+      Chinchilla optimal is dead for inference-heavy workloads. T² shows that for systems spending &gt;40% of total compute on inference (agentic applications, search, coding assistants), you should train smaller models for 3-5x longer and rely on more inference samples at test time. This flips conventional wisdom for anyone running agents at scale.
+    </div>
+
+    <div class="diagram-container">
+      <div class="diagram-title">// T² Compute Allocation: Before vs After</div>
+      <svg width="680" height="200" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+        <defs>
+          <marker id="arr3" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#8b949e"/>
+          </marker>
+        </defs>
+        <!-- Before -->
+        <text x="160" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#8b949e" letter-spacing="2">CHINCHILLA OPTIMAL</text>
+        <rect x="30" y="35" width="260" height="28" rx="0" fill="none"/>
+        <!-- Training bar: 50% -->
+        <rect x="30" y="35" width="130" height="28" rx="4" fill="rgba(88,166,255,0.3)" stroke="#58a6ff" stroke-width="1"/>
+        <text x="95" y="53" text-anchor="middle" font-family="Source Sans 3" font-size="11" fill="#58a6ff">Training 50%</text>
+        <!-- Inference bar: 50% -->
+        <rect x="165" y="35" width="130" height="28" rx="4" fill="rgba(240,136,62,0.2)" stroke="#f0883e" stroke-width="1"/>
+        <text x="230" y="53" text-anchor="middle" font-family="Source Sans 3" font-size="11" fill="#f0883e">Inference 50%</text>
+
+        <text x="35" y="88" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Model Size: Large</text>
+        <text x="35" y="104" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Training tokens: Chinchilla-matched</text>
+        <text x="35" y="120" font-family="JetBrains Mono" font-size="10" fill="#f85149">Result: Suboptimal for agent workloads</text>
+
+        <!-- Arrow -->
+        <text x="340" y="70" text-anchor="middle" font-family="JetBrains Mono" font-size="20" fill="#30363d">→</text>
+
+        <!-- After -->
+        <text x="530" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950" letter-spacing="2">T² OPTIMAL</text>
+        <rect x="400" y="35" width="270" height="28" rx="0" fill="none"/>
+        <!-- Training bar: 25% (overtrain smaller) -->
+        <rect x="400" y="35" width="68" height="28" rx="4" fill="rgba(88,166,255,0.3)" stroke="#58a6ff" stroke-width="1"/>
+        <text x="434" y="53" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#58a6ff">Train 25%</text>
+        <!-- Inference bar: 75% -->
+        <rect x="472" y="35" width="205" height="28" rx="4" fill="rgba(63,185,80,0.2)" stroke="#3fb950" stroke-width="1"/>
+        <text x="574" y="53" text-anchor="middle" font-family="Source Sans 3" font-size="11" fill="#3fb950">Inference Samples 75%</text>
+
+        <text x="405" y="88" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Model Size: Smaller (overtrained)</text>
+        <text x="405" y="104" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Training tokens: 3-5× longer</text>
+        <text x="405" y="120" font-family="JetBrains Mono" font-size="10" fill="#3fb950">Result: 15-30% better perf same budget</text>
+
+        <text x="340" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#8b949e">For inference-heavy systems (&gt;40% compute on serving)</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Gemma 4 -->
+  <div class="card blue">
+    <span class="badge deploy">✅ Deployable</span>
+    <span class="badge high">🔬 Research + OSS</span>
+    <div class="card-title"><a href="https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/" target="_blank">Gemma 4: Apache 2.0 Multimodal Models with Agentic Planning Capabilities</a></div>
+    <div class="card-meta">Google DeepMind Blog · April 2, 2026 · Open Weights / Architecture / Edge</div>
+    <div class="card-body">
+      <p>Google released Gemma 4 as four model sizes (E2B, E4B, 26B MoE, 31B Dense), all under Apache 2.0. The architecture natively supports vision, audio, and multi-step planning — no separate encoder required. E2B runs at 7.6 tokens/sec on Raspberry Pi 5 with sub-1.5GB RAM. The 31B beats Mistral 3.1 and Gemini 2.0 Flash-Lite across standard benchmarks.</p>
+    </div>
+    <div class="callout blue">
+      <div class="callout-title">What Changed</div>
+      Gemma 4 is the first time multimodal + agentic capabilities arrived simultaneously in a fully open-licensed (Apache 2.0) model family. The E-series architecture uses mixture-of-experts to compress capability into smaller active parameter counts: E4B activates only 4B params from a much larger pool, giving GPT-4-class performance in a deployable footprint.
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 2: OPEN-SOURCE ========== -->
+<section id="opensource">
+  <div class="section-header">
+    <span class="section-icon">🌐</span>
+    <span class="section-title" style="color:var(--green)">Open-Source World</span>
+    <span class="section-count">3 releases this week</span>
+  </div>
+
+  <!-- Llama 4 -->
+  <div class="card green">
+    <span class="badge deploy">✅ Production-Ready</span>
+    <span class="badge shift">🔄 Capability Shift</span>
+    <div class="card-title"><a href="https://ai.meta.com/blog/llama-4-multimodal-intelligence/" target="_blank">Meta Llama 4 Scout & Maverick: 10M Context, Native Multimodal, MoE Architecture</a></div>
+    <div class="card-meta">Meta AI Blog · Early April 2026 · Open-Weight · Commercial License</div>
+    <div class="card-body">
+      <p>Meta released two production-ready Llama 4 variants: Scout (17B active params / 16 experts, 10M token context, fits single H100) and Maverick (17B active / 128 experts, beats GPT-4o on most benchmarks, distilled from 288B Behemoth). Both are natively multimodal — vision and audio are baked into the base architecture, not bolted on via adapters.</p>
+    </div>
+    <div class="spec-tags">
+      <span class="spec-tag">Scout: 17B active | 16 experts</span>
+      <span class="spec-tag">Context: 10M tokens</span>
+      <span class="spec-tag">Maverick: 17B active | 128 experts</span>
+      <span class="spec-tag">License: Commercial (open-weight)</span>
+      <span class="spec-tag">Fits: Single H100 (Scout)</span>
+    </div>
+    <div class="callout green">
+      <div class="callout-title">Comparison vs. Alternatives</div>
+      Scout vs. Gemma 4 31B: Scout wins on context window by 40× (10M vs 256K), Gemma 4 wins on license (Apache 2.0 vs commercial). Maverick vs. GPT-4o: matches/exceeds on MMLU, HumanEval, MATH. New safety stack included: Llama Guard 4 (content moderation) + LlamaFirewall (prompt injection protection).
+    </div>
+
+    <div class="diagram-container">
+      <div class="diagram-title">// Llama 4 vs Competitors: Key Dimensions</div>
+      <svg width="640" height="220" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+        <!-- Grid lines -->
+        <line x1="120" y1="30" x2="620" y2="30" stroke="#1c2128" stroke-width="1"/>
+        <line x1="120" y1="80" x2="620" y2="80" stroke="#1c2128" stroke-width="1"/>
+        <line x1="120" y1="130" x2="620" y2="130" stroke="#1c2128" stroke-width="1"/>
+        <line x1="120" y1="180" x2="620" y2="180" stroke="#1c2128" stroke-width="1"/>
+
+        <!-- Y-axis labels -->
+        <text x="110" y="55" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Context</text>
+        <text x="110" y="105" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Perf</text>
+        <text x="110" y="155" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#8b949e">License</text>
+        <text x="110" y="200" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Multimodal</text>
+
+        <!-- Model headers -->
+        <text x="200" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">Llama 4 Scout</text>
+        <text x="340" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#58a6ff">Gemma 4 31B</text>
+        <text x="480" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#8b949e">GPT-4o</text>
+
+        <!-- Context -->
+        <rect x="155" y="35" width="90" height="35" rx="4" fill="rgba(63,185,80,0.3)" stroke="#3fb950" stroke-width="1"/>
+        <text x="200" y="57" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">10M tokens</text>
+        <rect x="295" y="35" width="90" height="35" rx="4" fill="rgba(88,166,255,0.15)" stroke="#30363d" stroke-width="1"/>
+        <text x="340" y="57" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#8b949e">256K tokens</text>
+        <rect x="435" y="35" width="90" height="35" rx="4" fill="rgba(139,148,158,0.1)" stroke="#30363d" stroke-width="1"/>
+        <text x="480" y="57" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#8b949e">128K tokens</text>
+
+        <!-- Perf -->
+        <rect x="155" y="85" width="90" height="35" rx="4" fill="rgba(63,185,80,0.15)" stroke="#30363d" stroke-width="1"/>
+        <text x="200" y="107" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">Strong</text>
+        <rect x="295" y="85" width="90" height="35" rx="4" fill="rgba(88,166,255,0.3)" stroke="#58a6ff" stroke-width="1"/>
+        <text x="340" y="107" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#58a6ff">Very Strong</text>
+        <rect x="435" y="85" width="90" height="35" rx="4" fill="rgba(63,185,80,0.3)" stroke="#3fb950" stroke-width="1"/>
+        <text x="480" y="107" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">Frontier</text>
+
+        <!-- License -->
+        <rect x="155" y="135" width="90" height="35" rx="4" fill="rgba(240,136,62,0.2)" stroke="#f0883e" stroke-width="1"/>
+        <text x="200" y="157" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#f0883e">Commercial</text>
+        <rect x="295" y="135" width="90" height="35" rx="4" fill="rgba(63,185,80,0.3)" stroke="#3fb950" stroke-width="1"/>
+        <text x="340" y="157" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">Apache 2.0</text>
+        <rect x="435" y="135" width="90" height="35" rx="4" fill="rgba(248,81,73,0.15)" stroke="#f85149" stroke-width="1"/>
+        <text x="480" y="157" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#f85149">Proprietary</text>
+
+        <!-- Multimodal -->
+        <rect x="155" y="185" width="90" height="28" rx="4" fill="rgba(63,185,80,0.3)" stroke="#3fb950" stroke-width="1"/>
+        <text x="200" y="203" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">Native</text>
+        <rect x="295" y="185" width="90" height="28" rx="4" fill="rgba(63,185,80,0.3)" stroke="#3fb950" stroke-width="1"/>
+        <text x="340" y="203" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">Native</text>
+        <rect x="435" y="185" width="90" height="28" rx="4" fill="rgba(63,185,80,0.3)" stroke="#3fb950" stroke-width="1"/>
+        <text x="480" y="203" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#3fb950">Native</text>
+      </svg>
+    </div>
+
+    <pre><code># Run Scout locally (fits on single H100 or 2x A100)
+ollama run llama4-scout
+# or via Llama API
+curl https://api.llama.com/v1/chat/completions \
+  -H "Authorization: Bearer $LLAMA_API_KEY" \
+  -d '{"model":"llama4-scout","messages":[...]}'</code></pre>
+  </div>
+
+  <!-- Harrier-OSS -->
+  <div class="card green">
+    <span class="badge deploy">✅ Deployable</span>
+    <div class="card-title"><a href="https://huggingface.co/microsoft/harrier-oss-v1" target="_blank">Microsoft Harrier-OSS-v1: SOTA Multilingual Embeddings (MIT License)</a></div>
+    <div class="card-meta">Microsoft / HuggingFace · March 30, 2026 · Embedding Model · MIT</div>
+    <div class="card-body">
+      <p>Harrier-OSS-v1 comes in three sizes (270M, 600M, 27B) using a novel decoder-only architecture (not the standard BERT-style encoder). Achieves SOTA on Multilingual MTEB v2 across all three sizes, beating Google's embedding models on multilingual tasks. The 27B model is the most capable open multilingual embedder released to date.</p>
+    </div>
+    <div class="spec-tags">
+      <span class="spec-tag">270M, 600M, 27B params</span>
+      <span class="spec-tag">32,768 token context</span>
+      <span class="spec-tag">MIT License</span>
+      <span class="spec-tag">SOTA: Multilingual MTEB v2</span>
+      <span class="spec-tag">Base: Gemma 3 (270M, 27B) / Qwen3 (600M)</span>
+    </div>
+    <pre><code>from sentence_transformers import SentenceTransformer
+model = SentenceTransformer('microsoft/harrier-oss-v1-270m')
+embeddings = model.encode(["Your text here"])
+# 27B version for max quality RAG pipelines</code></pre>
+  </div>
+
+  <!-- Ollama MLX -->
+  <div class="card green">
+    <span class="badge deploy">✅ Deployable</span>
+    <div class="card-title"><a href="https://ollama.com/blog/mlx" target="_blank">Ollama v0.20.2: Native MLX Backend — 93% Faster on Apple Silicon</a></div>
+    <div class="card-meta">Ollama · April 4, 2026 · Inference · Local Deployment</div>
+    <div class="card-body">
+      <p>Ollama v0.20.2 ships native Apple MLX integration: 1.6× faster prompt processing and 2× faster response generation on M-series Macs. Combined with macOS 26.2+ Neural Accelerator support on M5, this pushes local inference to 31 tokens/sec on Gemma 4 31B — within range of cloud API latency. Gemma 4 (all sizes), Llama 4 Scout, and Qwen3-VL now supported natively.</p>
+    </div>
+    <pre><code>brew upgrade ollama    # get v0.20.2
+ollama run gemma4:31b  # 93% faster on Apple Silicon
+ollama run llama4-scout</code></pre>
+  </div>
+</section>
+
+<!-- ========== SECTION 3: AGENTIC AI ========== -->
+<section id="agentic">
+  <div class="section-header">
+    <span class="section-icon">🤖</span>
+    <span class="section-title" style="color:var(--purple)">Agentic AI & AI Engineering</span>
+    <span class="section-count">3 major updates · Framework consolidation week</span>
+  </div>
+
+  <!-- Agent Architecture Diagram -->
+  <div class="diagram-container">
+    <div class="diagram-title">// Canonical Agent Architecture — April 6, 2026 Highlights</div>
+    <svg width="700" height="420" viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+      <defs>
+        <marker id="agarr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#30363d"/>
+        </marker>
+        <marker id="agarr2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#bc8cff"/>
+        </marker>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- User Goal -->
+      <rect x="250" y="10" width="200" height="36" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <text x="350" y="32" text-anchor="middle" font-family="Source Sans 3" font-size="13" fill="#c9d1d9">👤 User Goal</text>
+
+      <!-- Planner -->
+      <rect x="220" y="72" width="260" height="40" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <text x="350" y="97" text-anchor="middle" font-family="Source Sans 3" font-size="13" fill="#c9d1d9">🧠 Planner / Task Decomposer</text>
+      <!-- Cursor 3 highlight -->
+      <rect x="485" y="76" width="185" height="32" rx="4" fill="rgba(188,140,255,0.1)" stroke="rgba(188,140,255,0.4)" stroke-width="1"/>
+      <text x="578" y="90" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#bc8cff">▲ Cursor 3: Agents Window</text>
+      <text x="578" y="102" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#bc8cff">parallel planning</text>
+      <line x1="480" y1="92" x2="487" y2="92" stroke="#bc8cff" stroke-width="1" stroke-dasharray="2,2"/>
+
+      <!-- Memory Layer -->
+      <rect x="180" y="140" width="340" height="72" rx="6" fill="rgba(188,140,255,0.08)" stroke="rgba(188,140,255,0.5)" stroke-width="2" filter="url(#glow)"/>
+      <text x="350" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#bc8cff" letter-spacing="1">MEMORY LAYER ← UPDATED TODAY</text>
+      <text x="230" y="182" text-anchor="middle" font-family="Source Sans 3" font-size="11" fill="#c9d1d9">📂 Episodic</text>
+      <text x="350" y="182" text-anchor="middle" font-family="Source Sans 3" font-size="11" fill="#c9d1d9">📚 Semantic</text>
+      <text x="470" y="182" text-anchor="middle" font-family="Source Sans 3" font-size="11" fill="#c9d1d9">⚙️ Procedural</text>
+      <text x="350" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#bc8cff">ByteRover: LLM-curated hierarchical context tree</text>
+
+      <!-- Retriever -->
+      <rect x="220" y="238" width="260" height="38" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <text x="350" y="262" text-anchor="middle" font-family="Source Sans 3" font-size="13" fill="#c9d1d9">🔍 Retriever / RAG</text>
+      <text x="350" y="275" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8b949e">Harrier-OSS multilingual embeddings</text>
+
+      <!-- LLM -->
+      <rect x="220" y="302" width="260" height="38" rx="6" fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <text x="350" y="326" text-anchor="middle" font-family="Source Sans 3" font-size="13" fill="#c9d1d9">⚡ LLM / Reasoning Engine</text>
+      <text x="350" y="339" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8b949e">Llama 4 / Gemma 4 / Claude</text>
+
+      <!-- Tool Executor -->
+      <rect x="180" y="366" width="340" height="38" rx="6" fill="rgba(188,140,255,0.08)" stroke="rgba(188,140,255,0.5)" stroke-width="2" filter="url(#glow)"/>
+      <text x="350" y="388" text-anchor="middle" font-family="Source Sans 3" font-size="13" fill="#bc8cff">🔧 Tool Executor / MCP ← UPDATED TODAY</text>
+      <text x="350" y="400" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#bc8cff">Claude Code: 500K result size · OpenAI SDK: dynamic discovery</text>
+
+      <!-- Arrows -->
+      <line x1="350" y1="46" x2="350" y2="72" stroke="#30363d" stroke-width="1.5" marker-end="url(#agarr)"/>
+      <line x1="350" y1="112" x2="350" y2="140" stroke="#bc8cff" stroke-width="1.5" marker-end="url(#agarr2)"/>
+      <line x1="350" y1="212" x2="350" y2="238" stroke="#30363d" stroke-width="1.5" marker-end="url(#agarr)"/>
+      <line x1="350" y1="276" x2="350" y2="302" stroke="#30363d" stroke-width="1.5" marker-end="url(#agarr)"/>
+      <line x1="350" y1="340" x2="350" y2="366" stroke="#bc8cff" stroke-width="1.5" marker-end="url(#agarr2)"/>
+
+      <!-- Legend -->
+      <rect x="10" y="370" width="140" height="44" rx="4" fill="rgba(188,140,255,0.05)" stroke="rgba(188,140,255,0.2)" stroke-width="1"/>
+      <text x="20" y="388" font-family="JetBrains Mono" font-size="9" fill="#bc8cff">■ Updated today</text>
+      <text x="20" y="402" font-family="JetBrains Mono" font-size="9" fill="#30363d">■ Unchanged</text>
+    </svg>
+  </div>
+
+  <!-- Cursor 3 -->
+  <div class="card purple">
+    <span class="badge shift">🔄 Capability Shift</span>
+    <span class="badge deploy">✅ Deployable</span>
+    <div class="card-title"><a href="https://cursor.com/blog/cursor-3" target="_blank">Cursor 3: Agent-First IDE with Parallel Execution and Real-Time RL Checkpoints</a></div>
+    <div class="card-meta">Anysphere / Cursor · April 2, 2026 · AI Engineering / Orchestration</div>
+    <div class="card-body">
+      <p>Cursor 3 ships three major agent capabilities: (1) <strong>Agents Window</strong> — parallel multi-agent task execution with cloud orchestration, (2) <strong>Design Mode</strong> — UI-modifying agents via natural language, (3) real-time RL feedback loops refreshing model checkpoints every 5 hours without redeployment. Production evidence: Money Forward reports 15-20 hours/week engineering savings, 70% QA speedup.</p>
+    </div>
+    <div class="callout purple">
+      <div class="callout-title">Which Agent Capability It Affects</div>
+      <strong>Planning:</strong> Parallel task decomposition across agent instances. <strong>Orchestration:</strong> Agents Window enables non-blocking multi-agent workflows. <strong>Reliability:</strong> 5-hour RL refresh cycles mean agent behavior improves continuously without redeploy.
+    </div>
+    <div class="callout purple">
+      <div class="callout-title">Production Implications This Week</div>
+      This is NOT framework churn — it's a new execution model. Developers are shifting from writing code to orchestrating agents. If you're building coding agent workflows, the Agents Window API patterns (parallel sub-agents, local/cloud distribution) are worth studying for your own orchestration layer.
+    </div>
+  </div>
+
+  <!-- Claude Code 500K -->
+  <div class="card purple">
+    <span class="badge deploy">✅ Deployable Now</span>
+    <span class="badge high">🔧 Tool Use Upgrade</span>
+    <div class="card-title"><a href="https://code.claude.com/docs/en/changelog" target="_blank">Claude Code v2.1.92: MCP Results Now Up to 500K Chars + 60% Faster Diffs</a></div>
+    <div class="card-meta">Anthropic · April 4, 2026 · MCP / Tool Use / Agent Reliability</div>
+    <div class="card-body">
+      <p>Claude Code v2.1.92 introduces <code>_meta["anthropic/maxResultSizeChars"]</code> annotation, allowing MCP tool results up to 500K characters (vs. previous automatic truncation). Write tool diff computation is 60% faster for large files. A per-model cost breakdown is now available for subscription users with <code>/cost</code>.</p>
+    </div>
+    <div class="callout purple">
+      <div class="callout-title">What This Unlocks</div>
+      Previously, MCP database schema tools, large API responses, and full codebase reads were truncated — forcing agents to work with partial context. The 500K limit eliminates this for all practical tool outputs. Agents can now receive full database schemas, complete API specs, and large file reads in a single MCP call without chunking workarounds.
+    </div>
+    <div class="callout purple">
+      <div class="callout-title">Production Implications This Week</div>
+      MCP servers wrapping databases, APIs, or large file systems should set <code>maxResultSizeChars</code> in their response metadata. The 60% diff speedup matters for agents doing multi-file refactors — reduces round-trip latency significantly on 1K+ line file changes.
+    </div>
+  </div>
+
+  <!-- OpenAI Agents SDK -->
+  <div class="card purple">
+    <span class="badge exp">⚠️ Framework Maturation</span>
+    <div class="card-title"><a href="https://openai.github.io/openai-agents-python/release/" target="_blank">OpenAI Agents SDK: MCP Resource Discovery + Handoff Consolidation</a></div>
+    <div class="card-meta">OpenAI · April 2026 · Agent Orchestration / Multi-Agent</div>
+    <div class="card-body">
+      <p>The OpenAI Agents SDK now exposes <code>list_resources()</code> and <code>read_resource()</code> on MCPServer, enabling dynamic tool discovery at runtime. Handoff history for multi-agent chains is now packaged into a single assistant message with context labels — reducing token overhead for deep agentic chains (&gt;10 handoffs). Configurable error handling prevents full run failures from individual tool errors.</p>
+    </div>
+    <div class="callout purple">
+      <div class="callout-title">Production Implications</div>
+      Dynamic resource discovery means agents can now enumerate available tools at runtime rather than requiring hardcoded tool lists. Handoff consolidation is significant for cost: a 15-handoff agent chain previously carried full conversation history; now it's compressed into labeled context blocks. Estimate 30-50% token reduction on deep chains.
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 4: INFRA ========== -->
+<section id="infra">
+  <div class="section-header">
+    <span class="section-icon">⚡</span>
+    <span class="section-title" style="color:var(--orange)">Infrastructure & Serving</span>
+    <span class="section-count">2 significant advances</span>
+  </div>
+
+  <!-- TurboQuant -->
+  <div class="card orange">
+    <span class="badge deploy">✅ Deployable</span>
+    <span class="badge shift">🔄 Significant Advance</span>
+    <div class="card-title"><a href="https://www.analyticsvidhya.com/blog/2026/04/turboquant-google/" target="_blank">Google TurboQuant: 6× KV Cache Compression with Zero Accuracy Loss</a></div>
+    <div class="card-meta">Google · April 2026 · KV Cache / Memory / Throughput</div>
+    <div class="card-body">
+      <p>TurboQuant compresses KV caches to 3 bits using polar coordinate transformation + 1-bit error correction, achieving 6× memory compression with no accuracy loss and no calibration required. Previous best (KIVI) capped at 2.6× with accuracy tradeoffs. NVIDIA's complementary KVTC approach achieves up to 20× via transform coding for scenarios where some quality loss is acceptable.</p>
+    </div>
+    <div class="callout orange">
+      <div class="callout-title">Performance Numbers</div>
+      6× KV compression on same GPU → 2-4× higher batch sizes → proportional throughput gain → ~60-70% cost reduction per token on KV-cache-bound workloads (long-context agents, RAG with large retrieval windows). No model retraining or calibration dataset required.
+    </div>
+    <div class="callout orange">
+      <div class="callout-title">Impact on Agent Deployment</div>
+      Agents running 100K+ context windows see the largest benefit. A 256K-context Llama 4 Scout agent that previously required 2 A100s now fits on 1. This changes deployment cost math significantly for long-horizon agent tasks.
+    </div>
+  </div>
+
+  <!-- Saguaro -->
+  <div class="card orange">
+    <span class="badge exp">⚠️ Research → Production</span>
+    <div class="card-title"><a href="https://openreview.net/pdf?id=aL1Wnml9Ef" target="_blank">Saguaro Speculative Decoding: 5× Faster via Pre-emptive Verification</a></div>
+    <div class="card-meta">ICLR 2026 · April 2026 · Inference / Latency / Throughput</div>
+    <div class="card-body">
+      <p>Saguaro pre-emptively predicts verification outcomes while the verification process is still running, eliminating drafting overhead from speculative decoding. The result: 2× speedup over optimized speculative decoding baselines, 5× over standard autoregressive inference. Mirror Speculative Decoding variant achieves 5.8× on 14-66B parameter models. Batch speculative decoding achieves 3× throughput at batch size 8.</p>
+    </div>
+    <div class="callout orange">
+      <div class="callout-title">Impact on Agent Deployment at Scale</div>
+      3-5× throughput gains on serving infrastructure mean you can run 3-5× more concurrent agent instances on the same GPU cluster. For agentic workloads where latency compounds across multi-step reasoning chains, the 5× latency reduction can cut end-to-end agent task time by 60-70%.
+    </div>
+
+    <div class="diagram-container">
+      <div class="diagram-title">// Speculative Decoding: Standard vs Saguaro</div>
+      <svg width="660" height="200" viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+        <!-- Standard SD -->
+        <text x="5" y="20" font-family="JetBrains Mono" font-size="10" fill="#8b949e">STANDARD SPECULATIVE DECODING</text>
+        <!-- Timeline boxes -->
+        <rect x="5" y="30" width="80" height="30" rx="3" fill="rgba(88,166,255,0.2)" stroke="#58a6ff" stroke-width="1"/>
+        <text x="45" y="49" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#58a6ff">Draft ×k</text>
+        <rect x="90" y="30" width="80" height="30" rx="3" fill="rgba(240,136,62,0.2)" stroke="#f0883e" stroke-width="1"/>
+        <text x="130" y="49" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#f0883e">Verify</text>
+        <rect x="175" y="30" width="80" height="30" rx="3" fill="rgba(88,166,255,0.2)" stroke="#58a6ff" stroke-width="1"/>
+        <text x="215" y="49" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#58a6ff">Draft ×k</text>
+        <rect x="260" y="30" width="80" height="30" rx="3" fill="rgba(240,136,62,0.2)" stroke="#f0883e" stroke-width="1"/>
+        <text x="300" y="49" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#f0883e">Verify</text>
+        <!-- IDLE gap highlight -->
+        <rect x="90" y="30" width="2" height="30" fill="#f85149" opacity="0.5"/>
+        <rect x="260" y="30" width="2" height="30" fill="#f85149" opacity="0.5"/>
+        <text x="345" y="49" font-family="JetBrains Mono" font-size="10" fill="#f85149">← Draft idle during verify</text>
+        <text x="5" y="80" font-family="JetBrains Mono" font-size="10" fill="#8b949e">Throughput: 1×  |  Latency: baseline</text>
+
+        <!-- Saguaro -->
+        <text x="5" y="110" font-family="JetBrains Mono" font-size="10" fill="#3fb950">SAGUARO SPECULATIVE DECODING</text>
+        <rect x="5" y="120" width="80" height="30" rx="3" fill="rgba(63,185,80,0.2)" stroke="#3fb950" stroke-width="1"/>
+        <text x="45" y="139" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#3fb950">Draft ×k</text>
+        <!-- Overlap: verify starts WHILE draft is running -->
+        <rect x="55" y="120" width="80" height="30" rx="3" fill="rgba(240,136,62,0.15)" stroke="#f0883e" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="95" y="139" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#f0883e">Verify (pre-empt)</text>
+        <rect x="120" y="120" width="80" height="30" rx="3" fill="rgba(63,185,80,0.2)" stroke="#3fb950" stroke-width="1"/>
+        <text x="160" y="139" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#3fb950">Draft ×k</text>
+        <rect x="170" y="120" width="80" height="30" rx="3" fill="rgba(240,136,62,0.15)" stroke="#f0883e" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="210" y="139" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#f0883e">Verify (pre-empt)</text>
+        <rect x="235" y="120" width="60" height="30" rx="3" fill="rgba(63,185,80,0.2)" stroke="#3fb950" stroke-width="1"/>
+        <text x="265" y="139" text-anchor="middle" font-family="Source Sans 3" font-size="10" fill="#3fb950">Draft</text>
+
+        <text x="310" y="134" font-family="JetBrains Mono" font-size="10" fill="#3fb950">← Overlapped: 2× less wall time</text>
+        <text x="5" y="175" font-family="JetBrains Mono" font-size="10" fill="#3fb950">Throughput: 3×  |  Latency: 5× reduction vs autoregressive</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 5: DEEP DIVE ========== -->
+<section id="deepdive">
+  <div class="section-header">
+    <span class="section-icon">🔍</span>
+    <span class="section-title" style="color:var(--cyan)">Deep Technical Dive</span>
+    <span class="section-count">ByteRover memory architecture</span>
+  </div>
+
+  <div class="card cyan">
+    <div class="card-title">ByteRover: How LLM-Curated Memory Actually Works</div>
+    <div class="card-meta">arXiv:2604.01599 · Full mechanism breakdown</div>
+
+    <div class="card-body">
+      <p style="margin-bottom:14px;"><strong style="color:var(--cyan)">Mechanism:</strong> ByteRover creates a 5-tier context tree: <em>Domain → Topic → Subtopic → Entry → Chunk</em>. When an agent learns something new, the LLM generates a structured insertion decision — which domain, which topic, how to split, and how to relate it to existing entries. Retrieval works progressively: the system first scans Domain-level indexes (fast, no LLM), then Topic if needed, escalating to full LLM-mediated synthesis only for genuinely novel cross-domain queries.</p>
+
+      <p style="margin-bottom:14px;"><strong style="color:var(--cyan)">Intuition:</strong> Think of it as a living taxonomy built by the reasoning agent itself. The agent that uses knowledge is the same agent that decides how to file it. This creates coherent semantic groupings because the indexer understands task context — unlike embedding-based chunking which treats all text identically.</p>
+
+      <table class="data-table" style="margin:16px 0;">
+        <thead>
+          <tr><th>Dimension</th><th>ByteRover</th><th>Standard Vector RAG</th><th>Winner</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Retrieval latency (cache hit)</td><td>&lt;100ms</td><td>200-850ms</td><td style="color:var(--green)">ByteRover</td></tr>
+          <tr><td>Infrastructure required</td><td>None (in-LLM)</td><td>Vector DB + Embedder</td><td style="color:var(--green)">ByteRover</td></tr>
+          <tr><td>Semantic coherence</td><td>High (task-aware chunking)</td><td>Medium (fixed chunks)</td><td style="color:var(--green)">ByteRover</td></tr>
+          <tr><td>Curation cost</td><td>LLM tokens per insert</td><td>Embedding model only</td><td style="color:var(--orange)">Standard RAG</td></tr>
+          <tr><td>Scale to millions of docs</td><td>Unclear (research scale)</td><td>Proven</td><td style="color:var(--orange)">Standard RAG</td></tr>
+          <tr><td>Cold start (first query)</td><td>Equivalent</td><td>Equivalent</td><td style="color:var(--text-dim)">Tie</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-bottom:14px;"><strong style="color:var(--cyan)">When to use:</strong> Agent systems with bounded knowledge domains (customer support, code agents over a specific codebase, research assistants over a corpus). High-frequency repeated query patterns where cache hits dominate. Systems where reducing infrastructure dependencies matters.</p>
+
+      <p><strong style="color:var(--cyan)">When NOT to use:</strong> Web-scale retrieval (&gt;10M documents), streaming knowledge where freshness dominates over structure, or cost-sensitive settings where LLM curation tokens matter.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 6: SMALL FINDS ========== -->
+<section id="small">
+  <div class="section-header">
+    <span class="section-icon">📌</span>
+    <span class="section-title">Smaller But Important</span>
+    <span class="section-count">5 granular finds</span>
+  </div>
+
+  <div class="two-col">
+    <div class="card" style="border-color: var(--border)">
+      <span class="badge exp">⚠️ Watch</span>
+      <div class="card-title" style="font-size:13px;">LangGraph Fleet: Enterprise Multi-Tenant Agent Governance</div>
+      <div class="card-body" style="font-size:13px;">LangSmith Fleet (announced April 2026) adds fleet-wide agent identity, memory isolation, and permission boundaries for multi-tenant deployments. First framework to address SOC2-compliant multi-agent deployment with separate agent identities and audit trails. Not production yet but fills a critical gap for enterprise agent products. <a href="https://blog.langchain.com" style="color:var(--blue)">LangChain Blog</a></div>
+    </div>
+
+    <div class="card" style="border-color: var(--border)">
+      <span class="badge deploy">✅ Use Now</span>
+      <div class="card-title" style="font-size:13px;">Unsloth Studio Beta: No-Code Local Fine-Tuning (70% Less VRAM)</div>
+      <div class="card-body" style="font-size:13px;">Web-based local UI for fine-tuning 500+ models (text, vision, TTS, embedding). 70% VRAM reduction, 2× faster training, MoE models train 12× faster. Supports Gemma 4, Llama 4, Mistral Small 4, DeepSeek variants. Free and open-source. Drag-and-drop dataset configuration. <a href="https://unslothai.substack.com" style="color:var(--blue)">Unsloth Newsletter</a></div>
+    </div>
+
+    <div class="card" style="border-color: var(--border)">
+      <span class="badge exp">⚠️ Watch</span>
+      <div class="card-title" style="font-size:13px;">Agent Reliability Gap: 90% of Legacy Agents Fail Within Weeks</div>
+      <div class="card-body" style="font-size:13px;">Research from Harvard Berkman Klein / Fortune shows 90% of deployed agents fail due to architectural fragility. Key pattern: agents lack confidence calibration — models can't reliably distinguish correct from incorrect predictions better than random. Self-correction via real-time autorater loops emerging as primary mitigation. <a href="https://cyber.harvard.edu/story/2026-02/towards-science-ai-agent-reliability" style="color:var(--blue)">Harvard</a></div>
+    </div>
+
+    <div class="card" style="border-color: var(--border)">
+      <span class="badge deploy">✅ Ecosystem Signal</span>
+      <div class="card-title" style="font-size:13px;">MCP Ecosystem: 5,800+ Servers, 97M Monthly SDK Downloads</div>
+      <div class="card-body" style="font-size:13px;">Anthropic fixed multi-element error truncation and eliminated per-turn JSON.stringify in April MCP updates. SSE transport now handles large frames. Simon Willison notes context pollution "solved" — dozens of MCP attachments now work without confusion. Protocol backing: Anthropic, OpenAI, Google, Microsoft, AWS.</div>
+    </div>
+
+    <div class="card" style="border-color: var(--border)">
+      <span class="badge exp">⚠️ Track</span>
+      <div class="card-title" style="font-size:13px;">SWE-bench Pro: Top Agents Still at 23.3% on Hardest Tasks</div>
+      <div class="card-body" style="font-size:13px;">SWE-bench Live shows GPT-5.4 Pro leads at 88.3% on Verified (500 tasks), Claude Opus 4.6 at 79.3%. But on SWE-bench Pro (hardest real-world issues), top models only reach 23.3% — the hard ceiling of current autonomous coding agents. Monthly updates prevent contamination. <a href="https://www.swebench.com" style="color:var(--blue)">SWE-bench</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 7: VERDICT ========== -->
+<section id="verdict">
+  <div class="section-header">
+    <span class="section-icon">⚖️</span>
+    <span class="section-title">Signal vs. Noise</span>
+    <span class="section-count">9 items evaluated</span>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Item</th><th>Category</th><th>Verdict</th><th>Why (1 line)</th></tr>
+    </thead>
+    <tbody>
+      <tr class="verdict-row-shift">
+        <td><strong>ByteRover Memory</strong></td>
+        <td>Research / Architecture</td>
+        <td><span class="badge shift">🔄 Shift</span></td>
+        <td>Eliminates vector DB dependency; LLM-curated memory is architecturally distinct</td>
+      </tr>
+      <tr class="verdict-row-shift">
+        <td><strong>T² Scaling Laws</strong></td>
+        <td>Research / Training</td>
+        <td><span class="badge shift">🔄 Shift</span></td>
+        <td>Changes compute allocation strategy for inference-heavy (agent) workloads fundamentally</td>
+      </tr>
+      <tr class="verdict-row-ok">
+        <td><strong>Llama 4 Scout (10M ctx)</strong></td>
+        <td>Open-Source / Model</td>
+        <td><span class="badge deploy">✅ Signal</span></td>
+        <td>10M context on a single H100 with native multimodal is genuinely new capability</td>
+      </tr>
+      <tr class="verdict-row-ok">
+        <td><strong>Gemma 4 Apache 2.0</strong></td>
+        <td>Open-Source / Edge</td>
+        <td><span class="badge deploy">✅ Signal</span></td>
+        <td>First Apache 2.0 model with agentic planning + multimodal; edge deployment now viable</td>
+      </tr>
+      <tr class="verdict-row-ok">
+        <td><strong>Cursor 3 Agent Window</strong></td>
+        <td>Agentic AI / IDE</td>
+        <td><span class="badge deploy">✅ Signal</span></td>
+        <td>Parallel agent execution in IDEs with production evidence (Money Forward 20hr/wk savings)</td>
+      </tr>
+      <tr class="verdict-row-ok">
+        <td><strong>Claude Code 500K MCP</strong></td>
+        <td>Agentic AI / Tool Use</td>
+        <td><span class="badge deploy">✅ Signal</span></td>
+        <td>Removes hard blocker for MCP agents working with large schemas / API responses</td>
+      </tr>
+      <tr class="verdict-row-ok">
+        <td><strong>TurboQuant KV Cache 6×</strong></td>
+        <td>Infra / Memory</td>
+        <td><span class="badge deploy">✅ Signal</span></td>
+        <td>6× compression, zero accuracy loss, no calibration — directly cuts long-context serving cost</td>
+      </tr>
+      <tr class="verdict-row-ok">
+        <td><strong>Saguaro Speculative Decoding</strong></td>
+        <td>Infra / Inference</td>
+        <td><span class="badge exp">⚠️ Watch</span></td>
+        <td>5× faster is compelling but ICLR research → production path unclear; watch for vLLM/SGLang adoption</td>
+      </tr>
+      <tr class="verdict-row-noise">
+        <td><strong>OpenAI Agents SDK Handoffs</strong></td>
+        <td>Framework / QoL</td>
+        <td><span class="badge exp">⚠️ Incremental</span></td>
+        <td>Quality-of-life improvements on existing patterns; not a capability shift</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== SECTION 8: FRONTIER ========== -->
+<section id="frontier">
+  <div class="section-header">
+    <span class="section-icon">🧭</span>
+    <span class="section-title">Broader Frontier Direction</span>
+  </div>
+
+  <div class="card" style="border-color: var(--border);">
+    <div class="card-body">
+      <p style="margin-bottom:14px;"><strong style="color:#fff;">What capability bottleneck is under heaviest attack?</strong> Memory and context efficiency. ByteRover attacks agent memory coherence, TurboQuant attacks KV cache cost, Llama 4's 10M context attacks context length limits, and T² scaling laws attack the compute allocation problem. Every major item today touches the same question: how do we give agents cheaper, more coherent access to more information?</p>
+
+      <p style="margin-bottom:14px;"><strong style="color:#fff;">What broader trend do today's items belong to?</strong> The consolidation of agent infrastructure. We're past the framework proliferation phase. What we see now: protocols hardening (MCP at 5,800+ servers, A2A standardizing), model architectures maturing for agent workloads (MoE + long context as defaults), and reliability moving from afterthought to design constraint.</p>
+
+      <p style="margin-bottom:14px;"><strong style="color:#fff;">What's still unsolved?</strong> Confidence calibration — agents genuinely cannot tell when they're wrong before acting. The SWE-bench Pro 23.3% ceiling shows that hard real-world tasks remain intractable. Agent coordination (multi-agent trust, conflict resolution, shared state) has no good standard yet. Long-horizon planning beyond ~50 steps still fails in practice.</p>
+
+      <p style="margin-bottom:14px;"><strong style="color:#fff;">Convergence or divergence?</strong> Convergence on model architecture (MoE + long context + multimodal native) and protocol layer (MCP/A2A), divergence on memory architectures (vector vs. graph vs. LLM-curated vs. hybrid) and agent evaluation (no consensus benchmark for production agents).</p>
+    </div>
+  </div>
+
+  <div class="diagram-container">
+    <div class="diagram-title">// Frontier Movement Map — April 2026</div>
+    <svg width="680" height="300" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+      <defs>
+        <marker id="farr" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+          <path d="M0,0 L0,8 L10,4 z" fill="#3fb950"/>
+        </marker>
+        <marker id="farr2" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+          <path d="M0,0 L0,8 L10,4 z" fill="#bc8cff"/>
+        </marker>
+        <marker id="farr3" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+          <path d="M0,0 L0,8 L10,4 z" fill="#58a6ff"/>
+        </marker>
+        <marker id="farr4" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+          <path d="M0,0 L0,8 L10,4 z" fill="#f0883e"/>
+        </marker>
+      </defs>
+
+      <!-- Row 1 -->
+      <rect x="10" y="20" width="230" height="36" rx="5" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+      <text x="125" y="42" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Separated memory infrastructure</text>
+      <line x1="242" y1="38" x2="310" y2="38" stroke="#3fb950" stroke-width="2" marker-end="url(#farr)"/>
+      <rect x="312" y="20" width="360" height="36" rx="5" fill="rgba(63,185,80,0.1)" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="492" y="42" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#3fb950">LLM-curated in-process memory (ByteRover)</text>
+
+      <!-- Row 2 -->
+      <rect x="10" y="75" width="230" height="36" rx="5" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+      <text x="125" y="97" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Chinchilla-optimal pretraining</text>
+      <line x1="242" y1="93" x2="310" y2="93" stroke="#58a6ff" stroke-width="2" marker-end="url(#farr3)"/>
+      <rect x="312" y="75" width="360" height="36" rx="5" fill="rgba(88,166,255,0.1)" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="492" y="97" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#58a6ff">T²-optimal: overtrain small, scale inference</text>
+
+      <!-- Row 3 -->
+      <rect x="10" y="130" width="230" height="36" rx="5" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+      <text x="125" y="152" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Framework-specific tool protocols</text>
+      <line x1="242" y1="148" x2="310" y2="148" stroke="#bc8cff" stroke-width="2" marker-end="url(#farr2)"/>
+      <rect x="312" y="130" width="360" height="36" rx="5" fill="rgba(188,140,255,0.1)" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="492" y="152" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#bc8cff">Protocol-standardized tools (MCP/A2A)</text>
+
+      <!-- Row 4 -->
+      <rect x="10" y="185" width="230" height="36" rx="5" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+      <text x="125" y="207" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Cloud-only frontier inference</text>
+      <line x1="242" y1="203" x2="310" y2="203" stroke="#f0883e" stroke-width="2" marker-end="url(#farr4)"/>
+      <rect x="312" y="185" width="360" height="36" rx="5" fill="rgba(240,136,62,0.1)" stroke="#f0883e" stroke-width="1.5"/>
+      <text x="492" y="207" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#f0883e">Edge multimodal agents (Gemma 4, MLX)</text>
+
+      <!-- Row 5 -->
+      <rect x="10" y="240" width="230" height="36" rx="5" fill="#1c2128" stroke="#30363d" stroke-width="1"/>
+      <text x="125" y="262" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#8b949e">Sequential single-agent coding</text>
+      <line x1="242" y1="258" x2="310" y2="258" stroke="#3fb950" stroke-width="2.5" marker-end="url(#farr)"/>
+      <rect x="312" y="240" width="360" height="36" rx="5" fill="rgba(63,185,80,0.1)" stroke="#3fb950" stroke-width="2"/>
+      <text x="492" y="262" text-anchor="middle" font-family="Source Sans 3" font-size="12" fill="#3fb950">Parallel multi-agent orchestration (Cursor 3)</text>
+
+      <!-- Strength label -->
+      <text x="270" y="293" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8b949e">stronger signal = thicker arrow</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ========== SECTION 9: BUILDER ========== -->
+<section id="builder">
+  <div class="section-header">
+    <span class="section-icon">🛠️</span>
+    <span class="section-title">Builder Takeaways</span>
+    <span class="section-count">What changes for you this week</span>
+  </div>
+
+  <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg2);">
+    <div style="padding: 14px 20px; background: var(--bg3); border-bottom: 1px solid var(--border);">
+      <span style="font-family: JetBrains Mono; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">Model Selection</span>
+    </div>
+    <div style="padding: 4px 20px;">
+      <div class="builder-item">
+        <span class="builder-icon do">✓</span>
+        <div><strong>Switch RAG embeddings to Harrier-OSS-270M</strong> for any multilingual use case. MIT license, SOTA on Multilingual MTEB v2, self-hostable. Drop-in replacement for commercial embedding APIs.</div>
+      </div>
+      <div class="builder-item">
+        <span class="builder-icon try">→</span>
+        <div><strong>Evaluate Llama 4 Scout for long-context agent tasks.</strong> If your agent needs to hold 50K+ tokens of context, Scout's 10M window eliminates the chunking problem entirely. Commercial license is acceptable for most B2B use cases.</div>
+      </div>
+      <div class="builder-item">
+        <span class="builder-icon do">✓</span>
+        <div><strong>Upgrade to Ollama 0.20.2 if you're on Apple Silicon.</strong> 93% performance boost is immediate and requires no code changes. Makes local agent development dramatically faster.</div>
+      </div>
+    </div>
+
+    <div style="padding: 14px 20px; background: var(--bg3); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+      <span style="font-family: JetBrains Mono; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">Agentic Patterns</span>
+    </div>
+    <div style="padding: 4px 20px;">
+      <div class="builder-item">
+        <span class="builder-icon do">✓</span>
+        <div><strong>Set <code>maxResultSizeChars: 500000</code> in your MCP tool responses</strong> if you're returning large payloads (database schemas, API specs, file reads). Claude Code will now accept the full result instead of truncating.</div>
+      </div>
+      <div class="builder-item">
+        <span class="builder-icon try">→</span>
+        <div><strong>Prototype ByteRover memory architecture for bounded-domain agents.</strong> If your agent operates over a fixed corpus (company docs, codebase, product catalog), LLM-curated hierarchical memory could replace your vector DB with lower latency and better semantic coherence.</div>
+      </div>
+      <div class="builder-item">
+        <span class="builder-icon do">✓</span>
+        <div><strong>Add a reflection checkpoint + autorater loop to any agent handling high-stakes decisions.</strong> The Harvard reliability research makes this a design requirement, not an optimization. Even a small verifier model catching errors early prevents downstream cascades.</div>
+      </div>
+      <div class="builder-item">
+        <span class="builder-icon skip">✗</span>
+        <div><strong>Skip rebuilding agent memory around LangGraph Fleet yet.</strong> Still pre-production. Evaluate in 60 days when enterprise governance features stabilize. Use Mem0 or Zep for production memory today.</div>
+      </div>
+    </div>
+
+    <div style="padding: 14px 20px; background: var(--bg3); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+      <span style="font-family: JetBrains Mono; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">Infra / Cost</span>
+    </div>
+    <div style="padding: 4px 20px;">
+      <div class="builder-item">
+        <span class="builder-icon do">✓</span>
+        <div><strong>Evaluate TurboQuant for any long-context serving workload.</strong> 6× KV compression at zero accuracy cost with no calibration. If you're running agents at 100K+ context, this could halve your serving GPU spend.</div>
+      </div>
+      <div class="builder-item">
+        <span class="builder-icon try">→</span>
+        <div><strong>Track Saguaro adoption in vLLM/SGLang.</strong> 5× latency reduction is compelling but needs framework integration. Watch for PRs in the vLLM repo. Once merged, throughput gains flow to all existing serving deployments.</div>
+      </div>
+      <div class="builder-item">
+        <span class="builder-icon skip">✗</span>
+        <div><strong>Don't redesign pretraining strategy based on T² yet.</strong> Findings are directionally correct but require careful workload analysis. Relevant only if you control pretraining; for fine-tuning, existing Chinchilla intuitions still apply.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 10: OPPORTUNITIES ========== -->
+<section id="opps">
+  <div class="section-header">
+    <span class="section-icon">💡</span>
+    <span class="section-title">Business & Research Opportunities</span>
+    <span class="section-count">Tied to specific technical shifts</span>
+  </div>
+
+  <div class="two-col">
+    <div class="opp-card">
+      <div class="opp-title">🧠 Agent Memory-as-a-Service</div>
+      <p style="font-size:13px;color:var(--text);">ByteRover proves LLM-curated hierarchical memory outperforms vector DB RAG for bounded domains. Opportunity: managed memory service that handles curation, indexing, and retrieval for specialized vertical agents (legal, medical, codebase). Tie-in: Mem0 is already moving this direction with 48K GitHub stars but focused on general purpose.</p>
+      <div style="margin-top:10px; font-size:12px; color:var(--text-dim);">Technical anchor: ByteRover (arXiv:2604.01599)</div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-title">⚡ Agent Reliability Monitoring Platform</div>
+      <p style="font-size:13px;color:var(--text);">90% of deployed agents fail within weeks. No mature tool monitors agent confidence calibration, tracks decision cascades, or surfaces failure patterns at the architectural level. Langfuse/LangSmith cover traces; nobody covers agent reliability as a first-class product.</p>
+      <div style="margin-top:10px; font-size:12px; color:var(--text-dim);">Technical anchor: Harvard Berkman Klein reliability research</div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-title">🌐 Edge Multimodal Agent Products</div>
+      <p style="font-size:13px;color:var(--text);">Gemma 4 E2B runs multimodal agents on Raspberry Pi 5. Llama 4 Scout fits on a single H100. The hardware constraint for on-device agents is gone — the software stack to productize them hasn't been built yet. Vertical applications: medical devices (offline vision + language), industrial inspection, retail floor agents.</p>
+      <div style="margin-top:10px; font-size:12px; color:var(--text-dim);">Technical anchor: Gemma 4 Apache 2.0, Ollama MLX</div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-title">🔧 MCP Server Marketplace / Registry</div>
+      <p style="font-size:13px;color:var(--text);">5,800 MCP servers exist but discovery is chaotic. No curated, quality-graded registry exists. Opportunity: MCP server marketplace with quality scores, security auditing, one-click deployment, and usage analytics. First-mover advantage in defining discovery standards before the protocol ossifies.</p>
+      <div style="margin-top:10px; font-size:12px; color:var(--text-dim);">Technical anchor: MCP ecosystem momentum, 97M monthly SDK downloads</div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-title">📊 Multi-Agent Coordination Layer</div>
+      <p style="font-size:13px;color:var(--text);">Cursor 3's Agents Window shows parallel multi-agent execution is production-ready for coding. The same pattern (parallel agents + orchestrator + shared state) is missing for non-coding domains. Opportunity: orchestration middleware for domain-specific agent fleets (finance, legal, operations) with shared memory, conflict resolution, and audit trails.</p>
+      <div style="margin-top:10px; font-size:12px; color:var(--text-dim);">Technical anchor: Cursor 3, LangGraph Fleet, OpenAI Agents SDK handoffs</div>
+    </div>
+
+    <div class="opp-card">
+      <div class="opp-title">💰 Serving Cost Optimization Consulting/Tooling</div>
+      <p style="font-size:13px;color:var(--text);">TurboQuant (6× KV compression) + Saguaro (5× latency) + T² scaling laws represent a wave of optimization techniques that require significant systems expertise to deploy. Most teams can't implement these internally. Opportunity: managed inference optimization layer or consulting practice focused on cutting inference costs for agent-heavy workloads by 50-70%.</p>
+      <div style="margin-top:10px; font-size:12px; color:var(--text-dim);">Technical anchor: TurboQuant, Saguaro, T² scaling</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-sources">
+    <p style="font-family: JetBrains Mono; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Sources</p>
+    <ul style="list-style: none; columns: 2; column-gap: 32px; font-size: 12px; line-height: 2;">
+      <li><a href="https://arxiv.org/abs/2604.01599">arXiv:2604.01599 — ByteRover</a></li>
+      <li><a href="https://arxiv.org/abs/2604.01411">arXiv:2604.01411 — T² Scaling Laws</a></li>
+      <li><a href="https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/">Google Blog — Gemma 4</a></li>
+      <li><a href="https://ai.meta.com/blog/llama-4-multimodal-intelligence/">Meta AI Blog — Llama 4</a></li>
+      <li><a href="https://ollama.com/blog/mlx">Ollama Blog — MLX Integration</a></li>
+      <li><a href="https://www.analyticsvidhya.com/blog/2026/04/turboquant-google/">Analytics Vidhya — TurboQuant</a></li>
+      <li><a href="https://openreview.net/pdf?id=aL1Wnml9Ef">ICLR 2026 — Saguaro Speculative Decoding</a></li>
+      <li><a href="https://cursor.com/blog/cursor-3">Cursor Blog — Cursor 3</a></li>
+      <li><a href="https://code.claude.com/docs/en/changelog">Claude Code Changelog</a></li>
+      <li><a href="https://openai.github.io/openai-agents-python/release/">OpenAI Agents SDK Releases</a></li>
+      <li><a href="https://blog.langchain.com/march-2026-langchain-newsletter/">LangChain Blog</a></li>
+      <li><a href="https://cyber.harvard.edu/story/2026-02/towards-science-ai-agent-reliability">Harvard Berkman Klein — Agent Reliability</a></li>
+      <li><a href="https://unslothai.substack.com">Unsloth AI Newsletter</a></li>
+      <li><a href="https://github.com/ollama/ollama/releases">Ollama GitHub Releases</a></li>
+    </ul>
+  </div>
+  <div class="footer-credit">
+    Powered by Claude Cowork — Multi-Agent Scheduled Research System<br>
+    Architecture: 4 parallel sub-agents (Papers, Open-Source, Agentic AI, Infra) → Synthesizer → Visual HTML Brief<br>
+    Generated: April 6, 2026 · Model: claude-sonnet-4-6 · Task: daily-ai-frontier-brief
+  </div>
+</footer>
+
+</body>
+</html>
